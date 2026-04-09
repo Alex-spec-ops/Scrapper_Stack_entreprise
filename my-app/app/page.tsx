@@ -222,19 +222,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* Erreurs partielles */}
-            {result.errors.length > 0 && (
-              <details className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                <summary className="text-sm text-amber-700 font-medium cursor-pointer">
-                  {result.errors.length} source{result.errors.length > 1 ? 's' : ''} avec erreur
-                </summary>
-                <ul className="mt-2 space-y-1">
-                  {result.errors.map((e, i) => (
-                    <li key={i} className="text-xs text-amber-600">{e.message}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
+
 
             {/* Vue entreprises */}
             {viewMode === 'companies' && (
