@@ -14,8 +14,10 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(new URL(next, request.url))
     }
+    console.error('[auth/callback] exchangeCodeForSession error:', error)
+    return NextResponse.redirect(new URL(`/login?message=${encodeURIComponent(error.message)}`, origin))
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(new URL('/login?message=Could not authenticate user', origin))
+  console.error('[auth/callback] No code in URL. Params:', Object.fromEntries(searchParams))
+  return NextResponse.redirect(new URL('/login?message=No+auth+code+received', origin))
 }
