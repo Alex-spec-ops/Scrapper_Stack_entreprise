@@ -111,45 +111,50 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
   const indexPrefix = envConfig?.ALGOLIA_JOBS_INDEX_PREFIX ?? 'wttj_jobs_production';
   const index = `${indexPrefix}_fr`;
 
+  const allJobs: Job[] = [];
+  const maxPages = 3;
+
   try {
-    const response = await axios.post<AlgoliaResponse>(
-      `https://${appId}-dsn.algolia.net/1/indexes/${index}/query`,
-      {
-        query,
-        hitsPerPage: 40,             // on demande plus pour compenser le filtre post-traitement
-        advancedSyntax: true,
-        typoTolerance: false,
-        attributesToRetrieve: [
-          'objectID',
-          'name',
-          'contract_type',
-          'offices',
-          'key_missions',            // missions du poste (tableau de strings)
-          'profile',                 // profil recherché (markdown)
-          'summary',
-          'salary_minimum',
-          'salary_maximum',
-          'salary_currency',
-          'published_at',
-          'slug',
-          'organization',
-        ],
-      },
-      {
-        headers: {
-          'X-Algolia-Application-Id': appId,
-          'X-Algolia-API-Key': apiKey,
-          'Content-Type': 'application/json',
-          Referer: `${WTTJ_HOME}/`,
-          Origin: WTTJ_HOME,
+    for (let page = 0; page < maxPages; page++) {
+      const response = await axios.post<AlgoliaResponse>(
+        `https://${appId}-dsn.algolia.net/1/indexes/${index}/query`,
+        {
+          query,
+          page,
+          hitsPerPage: 40,
+          advancedSyntax: true,
+          typoTolerance: false,
+          attributesToRetrieve: [
+            'objectID',
+            'name',
+            'contract_type',
+            'offices',
+            'key_missions',
+            'profile',
+            'summary',
+            'salary_minimum',
+            'salary_maximum',
+            'salary_currency',
+            'published_at',
+            'slug',
+            'organization',
+          ],
         },
-        timeout: 12000,
-      }
-    );
+        {
+          headers: {
+            'X-Algolia-Application-Id': appId,
+            'X-Algolia-API-Key': apiKey,
+            'Content-Type': 'application/json',
+            Referer: `${WTTJ_HOME}/`,
+            Origin: WTTJ_HOME,
+          },
+          timeout: 10000,
+        }
+      );
 
-    const hits: AlgoliaHit[] = response.data.hits ?? [];
+      const hits: AlgoliaHit[] = response.data.hits ?? [];
+      if (hits.length === 0) break;
 
-    if (hits.length > 0) {
       const jobs: Job[] = hits.map((hit) => {
         const city = hit.offices?.[0]?.city ?? hit.office?.city ?? 'France';
         const missions = extractMissions(hit);
@@ -159,7 +164,6 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
           company: hit.organization?.name ?? 'Entreprise confidentielle',
           companyLogo: getLogoUrl(hit.organization),
           location: city,
-          // description = missions complètes (key_missions + profile) pour le filtre de pertinence
           description: missions,
           skills,
           salary: buildSalary(hit),
@@ -173,12 +177,14 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
         };
       });
 
-      return { jobs, source: 'wttj' };
+      allJobs.push(...jobs);
+      if (hits.length < 40) break; // Moins de hits que demandés = fin des résultats
     }
 
-    return { jobs: [], source: 'wttj', error: response.data.message ?? 'Aucun résultat WTTJ' };
+    return { jobs: allJobs, source: 'wttj' };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue';
     return { jobs: [], source: 'wttj', error: `WTTJ: ${message}` };
   }
 }
+

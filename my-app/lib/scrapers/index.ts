@@ -115,8 +115,9 @@ function filterAndSortByRelevance(jobs: Job[], skills: string[]): Job[] {
       return db - da;
     })
     .map((s) => s.job)
-    .slice(0, 20);
+    .slice(0, 50);
 }
+
 
 function groupByCompany(jobs: Job[]): Company[] {
   const map = new Map<string, Company>();

@@ -86,41 +86,59 @@ export async function scrapeFranceTravail(skills: string[]): Promise<ScraperResu
   }
 
   const query = skills.join(' ');
+  const allJobs: Job[] = [];
+  const maxPages = 3;
+
   try {
-    const response = await axios.get<FTResponse>(SEARCH_URL, {
-      params: {
-        motsCles: query,
-        range: '0-19',
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-      timeout: 12000,
-    });
+    for (let page = 0; page < maxPages; page++) {
+      const start = page * 20;
+      const end = start + 19;
+      
+      const response = await axios.get<FTResponse>(SEARCH_URL, {
+        params: {
+          motsCles: query,
+          range: `${start}-${end}`,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        timeout: 10000,
+      });
 
-    const offres: FTOffre[] = response.data.resultats ?? [];
+      const offres: FTOffre[] = response.data.resultats ?? [];
+      if (offres.length === 0) break;
 
-    const jobs: Job[] = offres.map((offre, i) => ({
-      id: `ft-${offre.id ?? i}`,
-      title: offre.intitule ?? 'Poste non précisé',
-      company: offre.entreprise?.nom ?? 'Entreprise confidentielle',
-      companyLogo: offre.entreprise?.logo,
-      location: offre.lieuTravail?.libelle ?? 'France',
-      description: offre.description ?? '',
-      skills,
-      salary: offre.salaire?.libelle,
-      contractType: offre.typeContrat,
-      publishedAt: offre.dateCreation,
-      url:
-        offre.origineOffre?.urlOrigine ??
-        `https://candidat.francetravail.fr/offres/recherche/detail/${offre.id}`,
-      source: 'francetravail',
-    }));
+      const jobs: Job[] = offres.map((offre, i) => ({
+        id: `ft-${offre.id ?? i}`,
+        title: offre.intitule ?? 'Poste non précisé',
+        company: offre.entreprise?.nom ?? 'Entreprise confidentielle',
+        companyLogo: offre.entreprise?.logo,
+        location: offre.lieuTravail?.libelle ?? 'France',
+        description: offre.description ?? '',
+        skills,
+        salary: offre.salaire?.libelle,
+        contractType: offre.typeContrat,
+        publishedAt: offre.dateCreation,
+        url:
+          offre.origineOffre?.urlOrigine ??
+          `https://candidat.francetravail.fr/offres/recherche/detail/${offre.id}`,
+        source: 'francetravail',
+      }));
 
-    return { jobs, source: 'francetravail' };
+      allJobs.push(...jobs);
+      if (offres.length < 20) break;
+    }
+
+    return { jobs: allJobs, source: 'francetravail' };
   } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 206) {
+      // 206 Partial Content is actually used by FT when results are found
+      // but the range is not fully filled. axios might throw if it's not handled.
+      // But usually axios handles 2xx as success.
+    }
     const message = err instanceof Error ? err.message : 'Erreur inconnue';
-    return { jobs: [], source: 'francetravail', error: `France Travail: ${message}` };
+    return { jobs: allJobs.length > 0 ? allJobs : [], source: 'francetravail', error: allJobs.length === 0 ? `France Travail: ${message}` : undefined };
   }
 }
+
