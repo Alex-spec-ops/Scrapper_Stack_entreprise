@@ -92,7 +92,7 @@ export default function Home() {
             <span className="hidden sm:inline text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">France</span>
           </div>
           <nav className="flex items-center gap-4 text-sm text-gray-500">
-            <span>5 sources</span>
+            <span>8 sources</span>
             <span className="w-1 h-1 rounded-full bg-gray-300 inline-block" />
             <span>Temps réel</span>
           </nav>
@@ -104,7 +104,7 @@ export default function Home() {
         <section className="py-16 text-center">
           <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-4 py-1.5 text-sm text-indigo-700 font-medium mb-6">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse inline-block" />
-            Indeed · WTTJ · APEC · France Travail · Jobteaser
+            Indeed · WTTJ · APEC · France Travail · Jobteaser · LesJeudis · Adzuna · Meteojob
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-4">
@@ -271,7 +271,7 @@ export default function Home() {
                   onClick={() =>
                     handleSearch(
                       [example.name],
-                      ['indeed', 'wttj', 'apec', 'francetravail', 'jobteaser']
+                      ['indeed', 'wttj', 'apec', 'francetravail', 'jobteaser', 'lesjeudis', 'adzuna', 'meteojob']
                     )
                   }
                   className={`p-4 rounded-xl bg-gradient-to-br ${example.color} text-white font-semibold text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200`}

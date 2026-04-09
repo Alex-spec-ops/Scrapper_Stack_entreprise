@@ -23,6 +23,9 @@ const ALL_SOURCES = [
   { id: 'apec', label: 'APEC' },
   { id: 'francetravail', label: 'France Travail' },
   { id: 'jobteaser', label: 'Jobteaser' },
+  { id: 'lesjeudis', label: 'LesJeudis' },
+  { id: 'adzuna', label: 'Adzuna' },
+  { id: 'meteojob', label: 'Meteojob' },
 ];
 
 export default function SearchBar({ onSearch, loading }: Props) {
