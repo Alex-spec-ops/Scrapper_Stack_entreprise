@@ -21,7 +21,7 @@ function randomUA(): string {
 export async function scrapeIndeed(skills: string[]): Promise<ScraperResult> {
   const query = skills.join(' ');
   const jobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   for (let page = 0; page < maxPages; page++) {
     const start = page * 10;

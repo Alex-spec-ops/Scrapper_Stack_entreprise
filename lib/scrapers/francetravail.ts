@@ -87,7 +87,7 @@ export async function scrapeFranceTravail(skills: string[]): Promise<ScraperResu
 
   const query = skills.join(' ');
   const allJobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   try {
     for (let page = 0; page < maxPages; page++) {

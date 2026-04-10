@@ -44,7 +44,7 @@ function findJobsArray(obj: unknown, depth = 0): LesJeudisJob[] | null {
 export async function scrapeLesJeudis(skills: string[]): Promise<ScraperResult> {
   const query = skills.join(' ');
   const allJobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   try {
     for (let page = 1; page <= maxPages; page++) {

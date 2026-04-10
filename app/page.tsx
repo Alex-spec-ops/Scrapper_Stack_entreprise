@@ -32,7 +32,7 @@ function HomeContent() {
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
   const [searchedSkills, setSearchedSkills] = useState<string[]>([]);
   const [user, setUser] = useState<UserSession | null>(null);
-  
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const supabase = createClient();
@@ -117,12 +117,12 @@ function HomeContent() {
 
   const sourceCounts = result
     ? SOURCE_IDS.reduce(
-        (acc, s) => {
-          acc[s] = result.jobs.filter((j) => j.source === s).length;
-          return acc;
-        },
-        {} as Record<JobSource, number>
-      )
+      (acc, s) => {
+        acc[s] = result.jobs.filter((j) => j.source === s).length;
+        return acc;
+      },
+      {} as Record<JobSource, number>
+    )
     : null;
 
   return (
@@ -138,7 +138,7 @@ function HomeContent() {
             </div>
             <span className="font-bold text-gray-900 text-lg tracking-tight">SkillHunt</span>
           </Link>
-          
+
           <div className="flex items-center gap-4 sm:gap-6">
             <nav className="hidden md:flex items-center gap-4 text-xs font-semibold text-gray-400">
               <span className="uppercase tracking-widest text-[10px]">8 sources</span>
@@ -149,42 +149,42 @@ function HomeContent() {
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 
             {user ? (
-               <div className="flex items-center gap-3">
-                 <Link 
-                   href="/history" 
-                   className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors bg-slate-100/50 px-3 py-1.5 rounded-lg"
-                 >
-                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                   </svg>
-                   Historique
-                 </Link>
-                 <div className="relative group">
-                   <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                     <span className="text-xs font-bold text-gray-700 hidden sm:inline truncate max-w-[120px]">
-                       {user.email?.split('@')[0]}
-                     </span>
-                     <div className="w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-[10px] font-bold">
-                       {user.email?.charAt(0).toUpperCase()}
-                     </div>
-                   </button>
-                   <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1 z-20">
-                     <Link href="/history" className="block px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-slate-50 transition-colors">
-                       Mon historique
-                     </Link>
-                     <div className="h-px bg-slate-50 my-1" />
-                     <button 
-                       onClick={handleLogout}
-                       className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
-                     >
-                       Déconnexion
-                     </button>
-                   </div>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/history"
+                  className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors bg-slate-100/50 px-3 py-1.5 rounded-lg"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Historique
+                </Link>
+                <div className="relative group">
+                  <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                    <span className="text-xs font-bold text-gray-700 hidden sm:inline truncate max-w-[120px]">
+                      {user.email?.split('@')[0]}
+                    </span>
+                    <div className="w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-[10px] font-bold">
+                      {user.email?.charAt(0).toUpperCase()}
+                    </div>
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1 z-20">
+                    <Link href="/history" className="block px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-slate-50 transition-colors">
+                      Mon historique
+                    </Link>
+                    <div className="h-px bg-slate-50 my-1" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Déconnexion
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-all shadow-lg shadow-slate-100 hover:shadow-indigo-100"
               >
                 Connexion
@@ -210,7 +210,7 @@ function HomeContent() {
           </h1>
 
           <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-            Entrez vos compétences, on scrape en temps réel les plateformes d&apos;emploi françaises 
+            Entrez vos compétences, on scrape en temps réel les plateformes d&apos;emploi françaises
             et on détecte les entreprises qui misent sur votre profil.
           </p>
 
@@ -258,10 +258,10 @@ function HomeContent() {
                   {result.totalJobs} <span className="font-medium text-gray-400">opportunité{result.totalJobs > 1 ? 's' : ''}</span>
                 </h2>
                 <div className="flex items-center gap-2 mt-0.5">
-                   <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full" />
-                   <p className="text-sm font-bold text-indigo-600/70 uppercase tracking-widest text-[10px]">
-                     {result.companies.length} société{result.companies.length > 1 ? 's' : ''} détectée{result.companies.length > 1 ? 's' : ''}
-                   </p>
+                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full" />
+                  <p className="text-sm font-bold text-indigo-600/70 uppercase tracking-widest text-[10px]">
+                    {result.companies.length} société{result.companies.length > 1 ? 's' : ''} détectée{result.companies.length > 1 ? 's' : ''}
+                  </p>
                 </div>
               </div>
 
@@ -269,21 +269,19 @@ function HomeContent() {
               <div className="flex items-center gap-1 bg-white/80 rounded-xl p-1.5 border border-slate-100 shadow-sm">
                 <button
                   onClick={() => setViewMode('companies')}
-                  className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                    viewMode === 'companies'
+                  className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'companies'
                       ? 'bg-slate-900 shadow-lg shadow-slate-200 text-white'
                       : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                    }`}
                 >
                   Sociétés
                 </button>
                 <button
                   onClick={() => setViewMode('jobs')}
-                  className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                    viewMode === 'jobs'
+                  className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'jobs'
                       ? 'bg-slate-900 shadow-lg shadow-slate-200 text-white'
                       : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                    }`}
                 >
                   Postes
                 </button>
@@ -295,11 +293,10 @@ function HomeContent() {
               <div className="flex flex-wrap gap-2 mb-10 overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
                 <button
                   onClick={() => setActiveSource('all')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
-                    activeSource === 'all'
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${activeSource === 'all'
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
                       : 'bg-white text-gray-400 border-slate-200 hover:border-slate-300'
-                  }`}
+                    }`}
                 >
                   TOUTES ({result.totalJobs})
                 </button>
@@ -307,11 +304,10 @@ function HomeContent() {
                   <button
                     key={s}
                     onClick={() => setActiveSource(s)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
-                      activeSource === s
+                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${activeSource === s
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
                         : 'bg-white text-gray-400 border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     {SOURCE_LABELS[s].toUpperCase()} ({sourceCounts[s]})
                   </button>
@@ -389,10 +385,10 @@ function HomeContent() {
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-            <div className="flex items-center justify-center gap-2 mb-4 opacity-50 grayscale hover:grayscale-0 transition-all">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connecté avec</span>
-                <span className="font-bold text-indigo-600 text-xs">Supabase</span>
-            </div>
+          <div className="flex items-center justify-center gap-2 mb-4 opacity-50 grayscale hover:grayscale-0 transition-all">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connecté avec</span>
+            <span className="font-bold text-indigo-600 text-xs">Supabase</span>
+          </div>
           <p className="text-xs text-gray-400 font-medium">
             SkillHunt agrège en temps réel les données de recrutement du marché français.
           </p>

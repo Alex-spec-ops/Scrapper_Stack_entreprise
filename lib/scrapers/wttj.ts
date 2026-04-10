@@ -112,7 +112,7 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
   const index = `${indexPrefix}_fr`;
 
   const allJobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   try {
     for (let page = 0; page < maxPages; page++) {

@@ -7,7 +7,7 @@ const BASE = 'https://www.adzuna.fr';
 export async function scrapeAdzuna(skills: string[]): Promise<ScraperResult> {
   const query = skills.join(' ');
   const allJobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   try {
     for (let page = 1; page <= maxPages; page++) {

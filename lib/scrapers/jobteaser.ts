@@ -26,7 +26,7 @@ async function tryPartnerApi(skills: string[]): Promise<Job[] | null> {
   if (!token) return null;
 
   const allJobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   try {
     for (let page = 1; page <= maxPages; page++) {
@@ -73,7 +73,7 @@ async function tryPartnerApi(skills: string[]): Promise<Job[] | null> {
 async function tryPublicWidget(skills: string[]): Promise<Job[]> {
   const query = encodeURIComponent(skills.join(' '));
   const allJobs: Job[] = [];
-  const maxPages = 3;
+  const maxPages = 5;
 
   for (let page = 1; page <= maxPages; page++) {
     try {
