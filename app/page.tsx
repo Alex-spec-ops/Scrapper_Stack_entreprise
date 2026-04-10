@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import SearchBar from './components/SearchBar';
 import JobCard from './components/JobCard';
 import CompanyCard from './components/CompanyCard';
+import ConnectionError from './components/ConnectionError';
 import { Job, Company, JobSource, SOURCE_LABELS } from '../lib/types';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
@@ -28,6 +29,10 @@ function HomeContent() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState(false);
+
+  const [authRequired, setAuthRequired] = useState(false);
+  const lastSearchRef = useRef<{ skills: string[]; sources: string[] } | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('companies');
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
   const [searchedSkills, setSearchedSkills] = useState<string[]>([]);
@@ -64,6 +69,20 @@ function HomeContent() {
   };
 
   async function handleSearch(skills: string[], sources: string[]) {
+    // Vérification de l'authentification avant de lancer la recherche
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      setAuthRequired(true);
+      setResult(null);
+      setError(null);
+      return;
+    }
+
+    // Mémorise la dernière recherche pour le bouton Réessayer
+    lastSearchRef.current = { skills, sources };
+
+    setAuthRequired(false);
+    setConnectionError(false);
     setLoading(true);
     setError(null);
     setResult(null);
@@ -86,16 +105,18 @@ function HomeContent() {
       setResult(data);
 
       // Save to Supabase history if logged in
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await supabase.from('search_history').insert({
-          user_id: session.user.id,
-          skills,
-          sources,
-        });
-      }
+      await supabase.from('search_history').insert({
+        user_id: session.user.id,
+        skills,
+        sources,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      // Erreur réseau (pas de réponse du serveur)
+      if (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) {
+        setConnectionError(true);
+      } else {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      }
     } finally {
       setLoading(false);
     }
@@ -126,7 +147,20 @@ function HomeContent() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <>
+      {/* Écran d'erreur connexion (plein écran) */}
+      {connectionError && (
+        <ConnectionError
+          onRetry={() => {
+            setConnectionError(false);
+            if (lastSearchRef.current) {
+              handleSearch(lastSearchRef.current.skills, lastSearchRef.current.sources);
+            }
+          }}
+        />
+      )}
+
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
       <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -395,6 +429,7 @@ function HomeContent() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
 
