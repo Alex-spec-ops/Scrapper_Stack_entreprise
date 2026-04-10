@@ -331,7 +331,7 @@ function HomeContent() {
 
             {/* Vue offres */}
             {viewMode === 'jobs' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
                 {filteredJobs.length === 0 ? (
                   <div className="col-span-full text-center py-20 bg-white/50 rounded-3xl border border-dashed border-slate-200">
                     <p className="font-bold text-gray-300 uppercase tracking-widest text-xs">
