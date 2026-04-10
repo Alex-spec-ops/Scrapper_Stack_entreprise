@@ -18,15 +18,13 @@ interface Props {
 }
 
 const ALL_SOURCES = [
-  { id: 'indeed', label: 'Indeed' },
   { id: 'wttj', label: 'Welcome to the Jungle' },
-  { id: 'apec', label: 'APEC' },
   { id: 'francetravail', label: 'France Travail' },
-  { id: 'jobteaser', label: 'Jobteaser' },
   { id: 'lesjeudis', label: 'LesJeudis' },
   { id: 'adzuna', label: 'Adzuna' },
   { id: 'meteojob', label: 'Meteojob' },
 ];
+
 
 export default function SearchBar({ onSearch, loading }: Props) {
   const [input, setInput] = useState('');

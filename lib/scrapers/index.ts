@@ -1,8 +1,5 @@
 import { Company, Job, ScraperResult, SearchResult } from '../types';
-import { scrapeApec } from './apec';
 import { scrapeFranceTravail } from './francetravail';
-import { scrapeIndeed } from './indeed';
-import { scrapeJobteaser } from './jobteaser';
 import { scrapeWttj } from './wttj';
 import { scrapeLesJeudis } from './lesjeudis';
 import { scrapeAdzuna } from './adzuna';
@@ -146,16 +143,13 @@ export async function scrapeAll(
   skills: string[],
   sources?: string[]
 ): Promise<SearchResult> {
-  const allSources = ['indeed', 'wttj', 'apec', 'francetravail', 'jobteaser', 'lesjeudis', 'adzuna', 'meteojob'];
+  const allSources = ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob'];
   const activeSources = sources?.length ? sources : allSources;
 
   const scrapers: Promise<ScraperResult>[] = [];
 
-  if (activeSources.includes('indeed')) scrapers.push(scrapeIndeed(skills));
   if (activeSources.includes('wttj')) scrapers.push(scrapeWttj(skills));
-  if (activeSources.includes('apec')) scrapers.push(scrapeApec(skills));
   if (activeSources.includes('francetravail')) scrapers.push(scrapeFranceTravail(skills));
-  if (activeSources.includes('jobteaser')) scrapers.push(scrapeJobteaser(skills));
   if (activeSources.includes('lesjeudis')) scrapers.push(scrapeLesJeudis(skills));
   if (activeSources.includes('adzuna')) scrapers.push(scrapeAdzuna(skills));
   if (activeSources.includes('meteojob')) scrapers.push(scrapeMeteojob(skills));

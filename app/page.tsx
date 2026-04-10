@@ -141,7 +141,7 @@ function HomeContent() {
 
           <div className="flex items-center gap-4 sm:gap-6">
             <nav className="hidden md:flex items-center gap-4 text-xs font-semibold text-gray-400">
-              <span className="uppercase tracking-widest text-[10px]">8 sources</span>
+              <span className="uppercase tracking-widest text-[10px]">5 sources</span>
               <span className="w-1 h-1 rounded-full bg-gray-300" />
               <span className="uppercase tracking-widest text-[10px]">Temps réel</span>
             </nav>
@@ -197,10 +197,7 @@ function HomeContent() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero */}
         <section className="py-16 text-center">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-4 py-1.5 text-xs text-indigo-700 font-bold mb-6 shadow-sm">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse inline-block" />
-            IND · WTTJ · APC · FT · JBT · LJD · ADZ · MTJ
-          </div>
+
 
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-6">
             Trouvez les entreprises qui{' '}
@@ -366,7 +363,7 @@ function HomeContent() {
                   onClick={() =>
                     handleSearch(
                       [example.name],
-                      ['indeed', 'wttj', 'apec', 'francetravail', 'jobteaser', 'lesjeudis', 'adzuna', 'meteojob']
+                      ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob']
                     )
                   }
                   className={`group relative p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 overflow-hidden`}
