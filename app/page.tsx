@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import SearchBar from './components/SearchBar';
 import JobCard from './components/JobCard';
 import CompanyCard from './components/CompanyCard';
-import ConnectionError from './components/ConnectionError';
+import ErrorOverlay from './components/ErrorOverlay';
 import { Job, Company, JobSource, SOURCE_LABELS } from '../lib/types';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
@@ -32,6 +32,7 @@ function HomeContent() {
   const [connectionError, setConnectionError] = useState(false);
 
   const [authRequired, setAuthRequired] = useState(false);
+
   const lastSearchRef = useRef<{ skills: string[]; sources: string[] } | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('companies');
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
@@ -148,15 +149,23 @@ function HomeContent() {
 
   return (
     <>
-      {/* Écran d'erreur connexion (plein écran) */}
+      {/* Écrans d'erreur / Auth (plein écran) */}
       {connectionError && (
-        <ConnectionError
+        <ErrorOverlay
+          mode="network"
           onRetry={() => {
             setConnectionError(false);
             if (lastSearchRef.current) {
               handleSearch(lastSearchRef.current.skills, lastSearchRef.current.sources);
             }
           }}
+        />
+      )}
+
+      {authRequired && (
+        <ErrorOverlay
+          mode="auth"
+          onClose={() => setAuthRequired(false)}
         />
       )}
 
