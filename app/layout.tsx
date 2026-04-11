@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "SkillHunt — Trouvez les entreprises qui recrutent vos compétences",
   description:
     "Scrapez en temps réel Indeed, Welcome to the Jungle, APEC, France Travail et Jobteaser pour trouver les entreprises qui utilisent vos compétences.",
+  icons: {
+    icon: "/skill_hunt.png",
+  },
 };
 
 export default function RootLayout({
