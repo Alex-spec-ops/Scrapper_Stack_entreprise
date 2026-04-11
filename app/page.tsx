@@ -36,6 +36,7 @@ function HomeContent() {
   const lastSearchRef = useRef<{ skills: string[]; sources: string[] } | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('companies');
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
+  const [activeCity, setActiveCity] = useState<string>('all');
   const [searchedSkills, setSearchedSkills] = useState<string[]>([]);
   const [user, setUser] = useState<UserSession | null>(null);
 
@@ -89,6 +90,7 @@ function HomeContent() {
     setResult(null);
     setSearchedSkills(skills);
     setActiveSource('all');
+    setActiveCity('all');
 
     try {
       const res = await fetch('/api/scrape', {
@@ -123,17 +125,37 @@ function HomeContent() {
     }
   }
 
+  function normalizeCity(location: string): string {
+    // Prend la première partie avant une virgule ou une parenthèse, nettoie les espaces
+    return location.split(/[,(]/)[0].trim();
+  }
+
+  const availableCities: string[] = result
+    ? Array.from(
+        new Set(
+          result.jobs
+            .map((j) => normalizeCity(j.location))
+            .filter((c) => c.length > 0)
+        )
+      ).sort((a, b) => a.localeCompare(b, 'fr'))
+    : [];
+
   const filteredJobs =
-    result?.jobs.filter((j) => activeSource === 'all' || j.source === activeSource) ?? [];
+    result?.jobs.filter(
+      (j) =>
+        (activeSource === 'all' || j.source === activeSource) &&
+        (activeCity === 'all' || normalizeCity(j.location) === activeCity)
+    ) ?? [];
 
   const filteredCompanies =
     result?.companies
       .map((c) => ({
         ...c,
-        jobs:
-          activeSource === 'all'
-            ? c.jobs
-            : c.jobs.filter((j) => j.source === activeSource),
+        jobs: c.jobs.filter(
+          (j) =>
+            (activeSource === 'all' || j.source === activeSource) &&
+            (activeCity === 'all' || normalizeCity(j.location) === activeCity)
+        ),
       }))
       .filter((c) => c.jobs.length > 0) ?? [];
 
@@ -352,6 +374,52 @@ function HomeContent() {
                     {SOURCE_LABELS[s].toUpperCase()} ({sourceCounts[s]})
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Filtre villes */}
+            {availableCities.length > 0 && (
+              <div className="flex items-center gap-3 mb-10">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest flex-shrink-0">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Villes
+                </span>
+                <div className="relative">
+                  <select
+                    value={activeCity}
+                    onChange={(e) => setActiveCity(e.target.value)}
+                    className={`appearance-none pl-3 pr-8 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                      activeCity !== 'all'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
+                        : 'bg-white text-gray-500 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <option value="all">Toutes les villes</option>
+                    {availableCities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  <svg
+                    className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${activeCity !== 'all' ? 'text-white' : 'text-gray-400'}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                {activeCity !== 'all' && (
+                  <button
+                    onClick={() => setActiveCity('all')}
+                    className="flex items-center gap-1 text-[11px] font-bold text-indigo-500 hover:text-indigo-700 transition-colors"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Effacer
+                  </button>
+                )}
               </div>
             )}
 

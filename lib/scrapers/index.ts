@@ -111,8 +111,7 @@ function filterAndSortByRelevance(jobs: Job[], skills: string[]): Job[] {
       const db = b.job.publishedAt ? new Date(b.job.publishedAt).getTime() : 0;
       return db - da;
     })
-    .map((s) => s.job)
-    .slice(0, 50);
+    .map((s) => s.job);
 }
 
 
