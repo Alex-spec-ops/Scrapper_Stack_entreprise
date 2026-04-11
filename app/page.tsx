@@ -196,11 +196,7 @@ function HomeContent() {
       <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 hover:scale-105 transition-transform cursor-pointer">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-100">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+            <img src="/skill_hunt.png" alt="SkillHunt logo" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-indigo-100" />
             <span className="font-bold text-gray-900 text-lg tracking-tight">SkillHunt</span>
           </Link>
 
