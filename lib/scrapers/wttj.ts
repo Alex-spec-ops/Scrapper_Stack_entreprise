@@ -92,13 +92,14 @@ function getLogoUrl(organization?: AlgoliaHit['organization']): string | undefin
 }
 
 /**
- * Construit la requête Algolia.
- * On entoure chaque compétence de guillemets pour forcer la correspondance exacte
- * et éviter qu'Algolia fasse du matching partiel ("Make" → "maker", "makeup"…).
- * Ex: ["Make", "Zapier"] → '"Make" "Zapier"'
+ * Construit la requête Algolia en OR explicite.
+ * Chaque compétence est entourée de guillemets (matching exact, pas de troncature)
+ * et séparée par OR pour qu'un job n'ait besoin de correspondre qu'à UNE seule
+ * compétence (le filtre de pertinence côté serveur affine ensuite).
+ * Ex: ["Python", "React"] → '"Python" OR "React"'
  */
 function buildAlgoliaQuery(skills: string[]): string {
-  return skills.map((s) => `"${s}"`).join(' ');
+  return skills.map((s) => `"${s}"`).join(' OR ');
 }
 
 export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {

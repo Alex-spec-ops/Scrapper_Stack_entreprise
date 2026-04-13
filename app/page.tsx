@@ -205,6 +205,16 @@ function HomeContent() {
               <span className="uppercase tracking-widest text-[10px]">5 sources</span>
               <span className="w-1 h-1 rounded-full bg-gray-300" />
               <span className="uppercase tracking-widest text-[10px]">Temps réel</span>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <Link
+                href="/cv"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 font-bold text-[10px] uppercase tracking-wide"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Analyser un CV
+              </Link>
             </nav>
 
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
@@ -271,6 +281,18 @@ function HomeContent() {
             Entrez vos compétences, on scrape en temps réel les plateformes d&apos;emploi françaises
             et on détecte les entreprises qui misent sur votre profil.
           </p>
+
+          <div className="flex justify-center mb-4">
+            <Link
+              href="/cv"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-300 text-indigo-600 font-bold text-xs uppercase tracking-wide transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Analyser un CV à la place
+            </Link>
+          </div>
 
           <SearchBar onSearch={handleSearch} loading={loading} />
         </section>

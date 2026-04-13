@@ -74,43 +74,18 @@ async function getToken(): Promise<string | null> {
   }
 }
 
-export async function scrapeFranceTravail(skills: string[]): Promise<ScraperResult> {
-  const token = await getToken();
-  if (!token) {
-    return {
-      jobs: [],
-      source: 'francetravail',
-      error:
-        'France Travail: Clés API manquantes. Ajoutez FRANCE_TRAVAIL_CLIENT_ID et FRANCE_TRAVAIL_CLIENT_SECRET dans .env.local',
-    };
-  }
-
-  const query = skills.join(' ');
-  const allJobs: Job[] = [];
-  const maxPages = 5;
-
+async function fetchForSkill(skill: string, token: string, skills: string[]): Promise<Job[]> {
+  const jobs: Job[] = [];
   try {
-    for (let page = 0; page < maxPages; page++) {
-      const start = page * 20;
-      const end = start + 19;
-      
-      const response = await axios.get<FTResponse>(SEARCH_URL, {
-        params: {
-          motsCles: query,
-          range: `${start}-${end}`,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-        timeout: 10000,
-      });
-
-      const offres: FTOffre[] = response.data.resultats ?? [];
-      if (offres.length === 0) break;
-
-      const jobs: Job[] = offres.map((offre, i) => ({
-        id: `ft-${offre.id ?? i}`,
+    const response = await axios.get<FTResponse>(SEARCH_URL, {
+      params: { motsCles: skill, range: '0-49' },
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      timeout: 10000,
+    });
+    const offres: FTOffre[] = response.data.resultats ?? [];
+    for (const offre of offres) {
+      jobs.push({
+        id: `ft-${offre.id ?? Math.random()}`,
         title: offre.intitule ?? 'Poste non précisé',
         company: offre.entreprise?.nom ?? 'Entreprise confidentielle',
         companyLogo: offre.entreprise?.logo,
@@ -124,21 +99,44 @@ export async function scrapeFranceTravail(skills: string[]): Promise<ScraperResu
           offre.origineOffre?.urlOrigine ??
           `https://candidat.francetravail.fr/offres/recherche/detail/${offre.id}`,
         source: 'francetravail',
-      }));
+      });
+    }
+  } catch {
+    // on ignore les erreurs par skill individuel
+  }
+  return jobs;
+}
 
-      allJobs.push(...jobs);
-      if (offres.length < 20) break;
+export async function scrapeFranceTravail(skills: string[]): Promise<ScraperResult> {
+  const token = await getToken();
+  if (!token) {
+    return {
+      jobs: [],
+      source: 'francetravail',
+      error:
+        'France Travail: Clés API manquantes. Ajoutez FRANCE_TRAVAIL_CLIENT_ID et FRANCE_TRAVAIL_CLIENT_SECRET dans .env.local',
+    };
+  }
+
+  try {
+    // Une requête par skill en parallèle → au moins un skill suffit
+    const perSkill = await Promise.all(skills.map((s) => fetchForSkill(s, token, skills)));
+
+    const seen = new Set<string>();
+    const allJobs: Job[] = [];
+    for (const batch of perSkill) {
+      for (const job of batch) {
+        if (!seen.has(job.url)) {
+          seen.add(job.url);
+          allJobs.push(job);
+        }
+      }
     }
 
     return { jobs: allJobs, source: 'francetravail' };
   } catch (err) {
-    if (axios.isAxiosError(err) && err.response?.status === 206) {
-      // 206 Partial Content is actually used by FT when results are found
-      // but the range is not fully filled. axios might throw if it's not handled.
-      // But usually axios handles 2xx as success.
-    }
     const message = err instanceof Error ? err.message : 'Erreur inconnue';
-    return { jobs: allJobs.length > 0 ? allJobs : [], source: 'francetravail', error: allJobs.length === 0 ? `France Travail: ${message}` : undefined };
+    return { jobs: [], source: 'francetravail', error: `France Travail: ${message}` };
   }
 }
 

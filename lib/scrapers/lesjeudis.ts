@@ -41,66 +41,73 @@ function findJobsArray(obj: unknown, depth = 0): LesJeudisJob[] | null {
   return null;
 }
 
-export async function scrapeLesJeudis(skills: string[]): Promise<ScraperResult> {
-  const query = skills.join(' ');
-  const allJobs: Job[] = [];
-  const maxPages = 5;
-
+async function fetchLesJeudisSkill(skill: string, skills: string[]): Promise<Job[]> {
+  const jobs: Job[] = [];
   try {
-    for (let page = 1; page <= maxPages; page++) {
-      const res = await axios.get<string>(`${BASE}/recherche?q=${encodeURIComponent(query)}&page=${page}`, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept-Language': 'fr-FR,fr;q=0.9',
-        },
-        timeout: 10000,
+    const res = await axios.get<string>(`${BASE}/recherche?q=${encodeURIComponent(skill)}&page=1`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'fr-FR,fr;q=0.9',
+      },
+      timeout: 10000,
+    });
+
+    const $ = cheerio.load(res.data);
+    const nextDataText = $('#__NEXT_DATA__').text();
+    if (!nextDataText) return jobs;
+
+    const nextData: NextData = JSON.parse(nextDataText);
+    const hits = findJobsArray(nextData);
+    if (!hits) return jobs;
+
+    for (const hit of hits) {
+      const location = hit.address?.[0] ?? 'France';
+      const salary =
+        hit.salaryRange && hit.salaryRange.length > 0 && hit.salaryRange[0].min
+          ? `${hit.salaryRange[0].min}–${hit.salaryRange[0].max ?? ''} ${hit.salaryRange[0].currency ?? '€'}`
+          : undefined;
+      jobs.push({
+        id: `lesjeudis-${hit.id}`,
+        title: hit.title,
+        company: hit.organization ?? 'Entreprise confidentielle',
+        companyLogo: hit.logo?.url,
+        location,
+        description: '',
+        skills,
+        salary,
+        contractType: hit.contractTypes?.[0],
+        publishedAt: hit.published,
+        url: hit.url?.path ? `${BASE}${hit.url.path}` : `${BASE}/recherche?q=${encodeURIComponent(skill)}`,
+        source: 'lesjeudis',
       });
-
-      const $ = cheerio.load(res.data);
-      const nextDataText = $('#__NEXT_DATA__').text();
-      if (!nextDataText) break;
-
-      const nextData: NextData = JSON.parse(nextDataText);
-      const hits = findJobsArray(nextData);
-
-      if (!hits || hits.length === 0) break;
-
-      const jobsInPage: Job[] = hits.map((hit) => {
-        const location = hit.address?.[0] ?? 'France';
-        const salary =
-          hit.salaryRange && hit.salaryRange.length > 0 && hit.salaryRange[0].min
-            ? `${hit.salaryRange[0].min}–${hit.salaryRange[0].max ?? ''} ${hit.salaryRange[0].currency ?? '€'}`
-            : undefined;
-
-        return {
-          id: `lesjeudis-${hit.id}`,
-          title: hit.title,
-          company: hit.organization ?? 'Entreprise confidentielle',
-          companyLogo: hit.logo?.url,
-          location,
-          description: '',
-          skills,
-          salary,
-          contractType: hit.contractTypes?.[0],
-          publishedAt: hit.published,
-          url: hit.url?.path ? `${BASE}${hit.url.path}` : `${BASE}/recherche?q=${encodeURIComponent(query)}&page=${page}`,
-          source: 'lesjeudis',
-        };
-      });
-
-      allJobs.push(...jobsInPage);
-      if (hits.length < 10) break; // Arbitrary small number
     }
+  } catch {
+    // on ignore les erreurs par skill individuel
+  }
+  return jobs;
+}
 
-    if (allJobs.length === 0) {
-      return { jobs: [], source: 'lesjeudis', error: 'LesJeudis: aucun résultat' };
+export async function scrapeLesJeudis(skills: string[]): Promise<ScraperResult> {
+  try {
+    // Une requête par skill en parallèle → au moins un skill suffit
+    const perSkill = await Promise.all(skills.map((s) => fetchLesJeudisSkill(s, skills)));
+
+    const seen = new Set<string>();
+    const allJobs: Job[] = [];
+    for (const batch of perSkill) {
+      for (const job of batch) {
+        if (!seen.has(job.url)) {
+          seen.add(job.url);
+          allJobs.push(job);
+        }
+      }
     }
 
     return { jobs: allJobs, source: 'lesjeudis' };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue';
-    return { jobs: allJobs.length > 0 ? allJobs : [], source: 'lesjeudis', error: allJobs.length === 0 ? `LesJeudis: ${message}` : undefined };
+    return { jobs: [], source: 'lesjeudis', error: `LesJeudis: ${message}` };
   }
 }
 

@@ -37,76 +37,74 @@ interface MeteojobState {
   };
 }
 
-export async function scrapeMeteojob(skills: string[]): Promise<ScraperResult> {
-  const query = skills.join(' ');
-  const allJobs: Job[] = [];
-  const maxPages = 5;
-
+async function fetchMeteojobSkill(skill: string, skills: string[]): Promise<Job[]> {
+  const jobs: Job[] = [];
   try {
-    for (let page = 1; page <= maxPages; page++) {
-      const res = await axios.get<string>(`${BASE}/jobs?q=${encodeURIComponent(query)}&page=${page}`, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept-Language': 'fr-FR,fr;q=0.9',
-          Accept: 'text/html,application/xhtml+xml',
-        },
-        timeout: 10000,
+    const res = await axios.get<string>(`${BASE}/jobs?q=${encodeURIComponent(skill)}&page=1`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'fr-FR,fr;q=0.9',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      timeout: 10000,
+    });
+
+    const $ = cheerio.load(res.data);
+    const stateText = $('#candidate-front-state').text();
+    if (!stateText) return jobs;
+
+    const state: MeteojobState = JSON.parse(stateText);
+    const offers = state['app:search:offers']?.content ?? [];
+
+    for (const offer of offers) {
+      const logoPath = offer.url?.logo;
+      const companyLogo = logoPath ? `${BASE}${logoPath}` : undefined;
+      const jobPath = offer.url?.jobOffer;
+      const url = jobPath ? `${BASE}${jobPath}` : `${BASE}/jobs?q=${encodeURIComponent(skill)}`;
+      const rawDesc = (offer.description ?? '') + ' ' + (offer.profileDescription ?? '');
+      const description = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      jobs.push({
+        id: `meteojob-${offer.id}`,
+        title: offer.title,
+        company: offer.company?.name ?? 'Entreprise confidentielle',
+        companyLogo,
+        location: offer.locality ?? 'France',
+        description,
+        skills,
+        salary: offer.labels?.salary?.value,
+        contractType: offer.labels?.contractTypeList?.[0]?.value ?? offer.contractTypes?.[0],
+        publishedAt: offer.publicationDate,
+        url,
+        source: 'meteojob',
       });
-
-      const $ = cheerio.load(res.data);
-      const stateText = $('#candidate-front-state').text();
-
-      if (!stateText) break;
-
-      const state: MeteojobState = JSON.parse(stateText);
-      const offers = state['app:search:offers']?.content ?? [];
-
-      if (offers.length === 0) break;
-
-      const jobsInPage: Job[] = offers.map((offer) => {
-        const logoPath = offer.url?.logo;
-        const companyLogo = logoPath ? `${BASE}${logoPath}` : undefined;
-
-        const jobPath = offer.url?.jobOffer;
-        const url = jobPath ? `${BASE}${jobPath}` : `${BASE}/jobs?q=${encodeURIComponent(query)}`;
-
-        const rawDesc = (offer.description ?? '') + ' ' + (offer.profileDescription ?? '');
-        const description = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-
-        const contractType =
-          offer.labels?.contractTypeList?.[0]?.value ?? offer.contractTypes?.[0];
-
-        const salary = offer.labels?.salary?.value;
-
-        return {
-          id: `meteojob-${offer.id}`,
-          title: offer.title,
-          company: offer.company?.name ?? 'Entreprise confidentielle',
-          companyLogo,
-          location: offer.locality ?? 'France',
-          description,
-          skills,
-          salary,
-          contractType,
-          publishedAt: offer.publicationDate,
-          url,
-          source: 'meteojob',
-        };
-      });
-
-      allJobs.push(...jobsInPage);
-      if (offers.length < 10) break; // Arbitrary small number implies last page
     }
+  } catch {
+    // on ignore les erreurs par skill individuel
+  }
+  return jobs;
+}
 
-    if (allJobs.length === 0) {
-      return { jobs: [], source: 'meteojob', error: 'Meteojob: aucun résultat' };
+export async function scrapeMeteojob(skills: string[]): Promise<ScraperResult> {
+  try {
+    // Une requête par skill en parallèle → au moins un skill suffit
+    const perSkill = await Promise.all(skills.map((s) => fetchMeteojobSkill(s, skills)));
+
+    const seen = new Set<string>();
+    const allJobs: Job[] = [];
+    for (const batch of perSkill) {
+      for (const job of batch) {
+        if (!seen.has(job.url)) {
+          seen.add(job.url);
+          allJobs.push(job);
+        }
+      }
     }
 
     return { jobs: allJobs, source: 'meteojob' };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue';
-    return { jobs: allJobs.length > 0 ? allJobs : [], source: 'meteojob', error: allJobs.length === 0 ? `Meteojob: ${message}` : undefined };
+    return { jobs: [], source: 'meteojob', error: `Meteojob: ${message}` };
   }
 }
 
