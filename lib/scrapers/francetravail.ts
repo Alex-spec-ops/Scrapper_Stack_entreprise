@@ -76,30 +76,34 @@ async function getToken(): Promise<string | null> {
 
 async function fetchForSkill(skill: string, token: string, skills: string[]): Promise<Job[]> {
   const jobs: Job[] = [];
+  const pageSize = 100;
   try {
-    const response = await axios.get<FTResponse>(SEARCH_URL, {
-      params: { motsCles: skill, range: '0-49' },
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-      timeout: 10000,
-    });
-    const offres: FTOffre[] = response.data.resultats ?? [];
-    for (const offre of offres) {
-      jobs.push({
-        id: `ft-${offre.id ?? Math.random()}`,
-        title: offre.intitule ?? 'Poste non précisé',
-        company: offre.entreprise?.nom ?? 'Entreprise confidentielle',
-        companyLogo: offre.entreprise?.logo,
-        location: offre.lieuTravail?.libelle ?? 'France',
-        description: offre.description ?? '',
-        skills,
-        salary: offre.salaire?.libelle,
-        contractType: offre.typeContrat,
-        publishedAt: offre.dateCreation,
-        url:
-          offre.origineOffre?.urlOrigine ??
-          `https://candidat.francetravail.fr/offres/recherche/detail/${offre.id}`,
-        source: 'francetravail',
+    for (let start = 0; start < 300; start += pageSize) {
+      const response = await axios.get<FTResponse>(SEARCH_URL, {
+        params: { motsCles: skill, range: `${start}-${start + pageSize - 1}` },
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+        timeout: 10000,
       });
+      const offres: FTOffre[] = response.data.resultats ?? [];
+      for (const offre of offres) {
+        jobs.push({
+          id: `ft-${offre.id ?? Math.random()}`,
+          title: offre.intitule ?? 'Poste non précisé',
+          company: offre.entreprise?.nom ?? 'Entreprise confidentielle',
+          companyLogo: offre.entreprise?.logo,
+          location: offre.lieuTravail?.libelle ?? 'France',
+          description: offre.description ?? '',
+          skills,
+          salary: offre.salaire?.libelle,
+          contractType: offre.typeContrat,
+          publishedAt: offre.dateCreation,
+          url:
+            offre.origineOffre?.urlOrigine ??
+            `https://candidat.francetravail.fr/offres/recherche/detail/${offre.id}`,
+          source: 'francetravail',
+        });
+      }
+      if (offres.length < pageSize) break;
     }
   } catch {
     // on ignore les erreurs par skill individuel

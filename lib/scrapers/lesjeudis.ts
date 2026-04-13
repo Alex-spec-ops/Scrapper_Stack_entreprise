@@ -44,43 +44,45 @@ function findJobsArray(obj: unknown, depth = 0): LesJeudisJob[] | null {
 async function fetchLesJeudisSkill(skill: string, skills: string[]): Promise<Job[]> {
   const jobs: Job[] = [];
   try {
-    const res = await axios.get<string>(`${BASE}/recherche?q=${encodeURIComponent(skill)}&page=1`, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'fr-FR,fr;q=0.9',
-      },
-      timeout: 10000,
-    });
-
-    const $ = cheerio.load(res.data);
-    const nextDataText = $('#__NEXT_DATA__').text();
-    if (!nextDataText) return jobs;
-
-    const nextData: NextData = JSON.parse(nextDataText);
-    const hits = findJobsArray(nextData);
-    if (!hits) return jobs;
-
-    for (const hit of hits) {
-      const location = hit.address?.[0] ?? 'France';
-      const salary =
-        hit.salaryRange && hit.salaryRange.length > 0 && hit.salaryRange[0].min
-          ? `${hit.salaryRange[0].min}–${hit.salaryRange[0].max ?? ''} ${hit.salaryRange[0].currency ?? '€'}`
-          : undefined;
-      jobs.push({
-        id: `lesjeudis-${hit.id}`,
-        title: hit.title,
-        company: hit.organization ?? 'Entreprise confidentielle',
-        companyLogo: hit.logo?.url,
-        location,
-        description: '',
-        skills,
-        salary,
-        contractType: hit.contractTypes?.[0],
-        publishedAt: hit.published,
-        url: hit.url?.path ? `${BASE}${hit.url.path}` : `${BASE}/recherche?q=${encodeURIComponent(skill)}`,
-        source: 'lesjeudis',
+    for (let page = 1; page <= 3; page++) {
+      const res = await axios.get<string>(`${BASE}/recherche?q=${encodeURIComponent(skill)}&page=${page}`, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'fr-FR,fr;q=0.9',
+        },
+        timeout: 10000,
       });
+
+      const $ = cheerio.load(res.data);
+      const nextDataText = $('#__NEXT_DATA__').text();
+      if (!nextDataText) break;
+
+      const nextData: NextData = JSON.parse(nextDataText);
+      const hits = findJobsArray(nextData);
+      if (!hits || hits.length === 0) break;
+
+      for (const hit of hits) {
+        const location = hit.address?.[0] ?? 'France';
+        const salary =
+          hit.salaryRange && hit.salaryRange.length > 0 && hit.salaryRange[0].min
+            ? `${hit.salaryRange[0].min}–${hit.salaryRange[0].max ?? ''} ${hit.salaryRange[0].currency ?? '€'}`
+            : undefined;
+        jobs.push({
+          id: `lesjeudis-${hit.id}`,
+          title: hit.title,
+          company: hit.organization ?? 'Entreprise confidentielle',
+          companyLogo: hit.logo?.url,
+          location,
+          description: '',
+          skills,
+          salary,
+          contractType: hit.contractTypes?.[0],
+          publishedAt: hit.published,
+          url: hit.url?.path ? `${BASE}${hit.url.path}` : `${BASE}/recherche?q=${encodeURIComponent(skill)}`,
+          source: 'lesjeudis',
+        });
+      }
     }
   } catch {
     // on ignore les erreurs par skill individuel

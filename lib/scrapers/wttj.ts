@@ -113,10 +113,9 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
   const index = `${indexPrefix}_fr`;
 
   const allJobs: Job[] = [];
-  const maxPages = 5;
 
   try {
-    for (let page = 0; page < maxPages; page++) {
+    for (let page = 0; page < 10; page++) {
       const response = await axios.post<AlgoliaResponse>(
         `https://${appId}-dsn.algolia.net/1/indexes/${index}/query`,
         {

@@ -37,6 +37,7 @@ function HomeContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('companies');
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
   const [activeCity, setActiveCity] = useState<string>('all');
+  const [activeContract, setActiveContract] = useState<string>('all');
   const [searchedSkills, setSearchedSkills] = useState<string[]>([]);
   const [user, setUser] = useState<UserSession | null>(null);
 
@@ -91,6 +92,7 @@ function HomeContent() {
     setSearchedSkills(skills);
     setActiveSource('all');
     setActiveCity('all');
+    setActiveContract('all');
 
     try {
       const res = await fetch('/api/scrape', {
@@ -126,8 +128,20 @@ function HomeContent() {
   }
 
   function normalizeCity(location: string): string {
-    // Prend la première partie avant une virgule ou une parenthèse, nettoie les espaces
     return location.split(/[,(]/)[0].trim();
+  }
+
+  function normalizeContract(raw: string): string {
+    const t = raw.toLowerCase().trim();
+    if (t === 'cdi' || t === 'full_time' || t === 'permanent') return 'CDI';
+    if (t === 'cdd' || t === 'fixed_term' || t === 'temporary') return 'CDD';
+    if (t.includes('stage') || t === 'internship') return 'Stage';
+    if (t.includes('alternance') || t.includes('apprenti') || t === 'apprenticeship') return 'Alternance';
+    if (t.includes('freelance') || t.includes('indépendant') || t === 'contractor') return 'Freelance';
+    if (t.includes('intérim') || t.includes('interim') || t === 'mis' || t === 'din') return 'Intérim';
+    if (t.includes('partiel') || t === 'part_time') return 'Temps partiel';
+    if (t === 'sai' || t.includes('saisonnier')) return 'Saisonnier';
+    return raw.trim();
   }
 
   const availableCities: string[] = result
@@ -140,23 +154,36 @@ function HomeContent() {
       ).sort((a, b) => a.localeCompare(b, 'fr'))
     : [];
 
-  const filteredJobs =
-    result?.jobs.filter(
-      (j) =>
-        (activeSource === 'all' || j.source === activeSource) &&
-        (activeCity === 'all' || normalizeCity(j.location) === activeCity)
-    ) ?? [];
+  // Ordre d'affichage souhaité pour les types de contrat courants
+  const CONTRACT_ORDER = ['CDI', 'CDD', 'Alternance', 'Stage', 'Freelance', 'Intérim', 'Temps partiel', 'Saisonnier'];
+
+  const availableContracts: string[] = result
+    ? Array.from(
+        new Set(
+          result.jobs
+            .map((j) => (j.contractType ? normalizeContract(j.contractType) : ''))
+            .filter((c) => c.length > 0)
+        )
+      ).sort((a, b) => {
+        const ia = CONTRACT_ORDER.indexOf(a);
+        const ib = CONTRACT_ORDER.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b, 'fr');
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      })
+    : [];
+
+  const jobMatchesFilters = (j: { source: string; location: string; contractType?: string }) =>
+    (activeSource === 'all' || j.source === activeSource) &&
+    (activeCity === 'all' || normalizeCity(j.location) === activeCity) &&
+    (activeContract === 'all' || (j.contractType ? normalizeContract(j.contractType) : '') === activeContract);
+
+  const filteredJobs = result?.jobs.filter(jobMatchesFilters) ?? [];
 
   const filteredCompanies =
     result?.companies
-      .map((c) => ({
-        ...c,
-        jobs: c.jobs.filter(
-          (j) =>
-            (activeSource === 'all' || j.source === activeSource) &&
-            (activeCity === 'all' || normalizeCity(j.location) === activeCity)
-        ),
-      }))
+      .map((c) => ({ ...c, jobs: c.jobs.filter(jobMatchesFilters) }))
       .filter((c) => c.jobs.length > 0) ?? [];
 
   const sourceCounts = result
@@ -335,12 +362,19 @@ function HomeContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 bg-white/40 p-1.5 pl-6 rounded-2xl border border-white/60 shadow-sm">
               <div className="py-2">
                 <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-                  {result.totalJobs} <span className="font-medium text-gray-400">opportunité{result.totalJobs > 1 ? 's' : ''}</span>
+                  {filteredJobs.length}
+                  {filteredJobs.length !== result.totalJobs && (
+                    <span className="text-base font-medium text-gray-300 ml-2">/ {result.totalJobs}</span>
+                  )}
+                  {' '}<span className="font-medium text-gray-400">opportunité{filteredJobs.length > 1 ? 's' : ''}</span>
                 </h2>
                 <div className="flex items-center gap-2 mt-0.5">
                   <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full" />
                   <p className="text-sm font-bold text-indigo-600/70 uppercase tracking-widest text-[10px]">
-                    {result.companies.length} société{result.companies.length > 1 ? 's' : ''} détectée{result.companies.length > 1 ? 's' : ''}
+                    {filteredCompanies.length} société{filteredCompanies.length > 1 ? 's' : ''} détectée{filteredCompanies.length > 1 ? 's' : ''}
+                    {filteredCompanies.length !== result.companies.length && (
+                      <span className="text-indigo-300 font-medium"> / {result.companies.length}</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -395,49 +429,67 @@ function HomeContent() {
               </div>
             )}
 
-            {/* Filtre villes */}
-            {availableCities.length > 0 && (
-              <div className="flex items-center gap-3 mb-10">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest flex-shrink-0">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Villes
-                </span>
-                <div className="relative">
-                  <select
-                    value={activeCity}
-                    onChange={(e) => setActiveCity(e.target.value)}
-                    className={`appearance-none pl-3 pr-8 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
-                      activeCity !== 'all'
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
-                        : 'bg-white text-gray-500 border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <option value="all">Toutes les villes</option>
-                    {availableCities.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
-                  <svg
-                    className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${activeCity !== 'all' ? 'text-white' : 'text-gray-400'}`}
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                {activeCity !== 'all' && (
-                  <button
-                    onClick={() => setActiveCity('all')}
-                    className="flex items-center gap-1 text-[11px] font-bold text-indigo-500 hover:text-indigo-700 transition-colors"
-                  >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            {/* Filtres Ville + Contrat */}
+            {(availableCities.length > 0 || availableContracts.length > 0) && (
+              <div className="flex flex-wrap gap-3 mb-10">
+
+                {/* Ville */}
+                {availableCities.length > 0 && (
+                  <div className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border bg-white shadow-sm transition-all ${activeCity !== 'all' ? 'border-indigo-400 ring-2 ring-indigo-100' : 'border-slate-200'}`}>
+                    <svg className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Effacer
-                  </button>
+                    <select
+                      value={activeCity}
+                      onChange={(e) => setActiveCity(e.target.value)}
+                      className="appearance-none bg-transparent text-sm font-semibold text-gray-700 cursor-pointer focus:outline-none pr-5"
+                    >
+                      <option value="all">Toutes les villes</option>
+                      {availableCities.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                    {activeCity !== 'all' ? (
+                      <button onClick={() => setActiveCity('all')} className="ml-1 p-0.5 rounded-full hover:bg-indigo-100 text-indigo-500 transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 text-slate-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </div>
                 )}
+
+                {/* Type de contrat */}
+                {availableContracts.length > 0 && (
+                  <div className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border bg-white shadow-sm transition-all ${activeContract !== 'all' ? 'border-indigo-400 ring-2 ring-indigo-100' : 'border-slate-200'}`}>
+                    <svg className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <select
+                      value={activeContract}
+                      onChange={(e) => setActiveContract(e.target.value)}
+                      className="appearance-none bg-transparent text-sm font-semibold text-gray-700 cursor-pointer focus:outline-none pr-5"
+                    >
+                      <option value="all">Tous les contrats</option>
+                      {availableContracts.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    {activeContract !== 'all' ? (
+                      <button onClick={() => setActiveContract('all')} className="ml-1 p-0.5 rounded-full hover:bg-indigo-100 text-indigo-500 transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 text-slate-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </div>
+                )}
+
               </div>
             )}
 
