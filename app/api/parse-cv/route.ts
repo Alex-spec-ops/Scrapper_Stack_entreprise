@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import pdfParse from 'pdf-parse';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
-
-// Disable worker — required for Node.js/serverless environments
-pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
 const KNOWN_SKILLS = [
   // Langages
@@ -156,33 +153,6 @@ function extractSkills(text: string): string[] {
   return Array.from(found).sort((a, b) => a.localeCompare(b, 'fr'));
 }
 
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  const uint8Array = new Uint8Array(buffer);
-  const loadingTask = pdfjsLib.getDocument({
-    data: uint8Array,
-    verbosity: 0,
-    useWorkerFetch: false,
-    isEvalSupported: false,
-    useSystemFonts: true,
-  });
-  const pdf = await loadingTask.promise;
-
-  let fullText = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const pageText = content.items
-      .map((item: unknown) => {
-        const textItem = item as { str?: string };
-        return textItem.str ?? '';
-      })
-      .join(' ');
-    fullText += pageText + '\n\n';
-    page.cleanup();
-  }
-  await pdf.destroy();
-  return fullText;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -198,12 +168,13 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const text = await extractTextFromPDF(buffer);
+    const { text } = await pdfParse(buffer);
     const skills = extractSkills(text);
 
     return NextResponse.json({ skills, charCount: text.length });
   } catch (err) {
-    console.error('[API /parse-cv]', err);
-    return NextResponse.json({ error: 'Impossible de lire le PDF.' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[API /parse-cv]', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
