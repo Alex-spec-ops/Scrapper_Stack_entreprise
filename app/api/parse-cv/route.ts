@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pdfParse from 'pdf-parse/lib/pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
+// Disable worker in Node.js/serverless environment
+pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
 const KNOWN_SKILLS = [
   // Langages
@@ -87,7 +90,7 @@ const KNOWN_SKILLS = [
   'Comptabilité', 'Analyse financière', 'Contrôle de gestion', 'Audit',
   'Fiscalité', 'IFRS', 'Consolidation', 'Excel avancé', 'SAP FI/CO',
   'Oracle Financials', 'Reporting financier', 'Budget & Forecast',
-  'Cash Management', 'Treasury', 'Valorisation d\'entreprise', 'DCF', 'LBO',
+  'Cash Management', 'Treasury', "Valorisation d'entreprise", 'DCF', 'LBO',
   'Corporate Finance', 'Financial Planning & Analysis', 'Gestion de trésorerie',
   'Normes comptables', 'Clôture comptable', 'Cost Accounting', 'Tax Planning',
   'Internal Controls',
@@ -97,7 +100,7 @@ const KNOWN_SKILLS = [
   'SIRH', 'Employee Engagement', 'Performance Management',
   'Compensation & Benefits', 'Relations sociales', 'Droit du travail',
   'Onboarding', 'Talent Acquisition', 'Employer Branding', 'People Analytics',
-  'Succession Planning', 'Diversity & Inclusion', 'Culture d\'entreprise',
+  'Succession Planning', 'Diversity & Inclusion', "Culture d'entreprise",
   'Change Management', 'Coaching', 'Mentoring', 'Employee Relations',
   'HRIS', 'Workday', 'SAP HR', 'HR Strategy',
 
@@ -112,7 +115,7 @@ const KNOWN_SKILLS = [
   'Service client',
 
   // Soft skills & leadership
-  'Leadership', 'Management d\'équipe', 'Communication', 'Négociation',
+  'Leadership', "Management d'équipe", 'Communication', 'Négociation',
   'Résolution de problèmes', 'Pensée critique', 'Créativité', 'Adaptabilité',
   'Intelligence émotionnelle', 'Gestion du temps', 'Prise de décision',
   'Collaboration', 'Travail en équipe', 'Empathie', 'Résilience', 'Persuasion',
@@ -140,16 +143,36 @@ function extractSkills(text: string): string[] {
   const found = new Set<string>();
 
   for (const skill of KNOWN_SKILLS) {
-    // Cherche le skill en tant que mot entier, insensible à la casse
     const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(?<![a-zA-Z0-9.])${escaped}(?![a-zA-Z0-9])`, 'i');
     if (regex.test(text)) {
-      // Conserve la casse canonique définie dans KNOWN_SKILLS
       found.add(skill);
     }
   }
 
   return Array.from(found).sort((a, b) => a.localeCompare(b, 'fr'));
+}
+
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  const uint8Array = new Uint8Array(buffer);
+  const loadingTask = pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 });
+  const pdf = await loadingTask.promise;
+
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map((item: unknown) => {
+        const textItem = item as { str?: string };
+        return textItem.str ?? '';
+      })
+      .join(' ');
+    fullText += pageText + '\n\n';
+    page.cleanup();
+  }
+  await pdf.destroy();
+  return fullText;
 }
 
 export async function POST(req: NextRequest) {
@@ -166,10 +189,10 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const parsed = await pdfParse(buffer);
-    const skills = extractSkills(parsed.text);
+    const text = await extractTextFromPDF(buffer);
+    const skills = extractSkills(text);
 
-    return NextResponse.json({ skills, charCount: parsed.text.length });
+    return NextResponse.json({ skills, charCount: text.length });
   } catch (err) {
     console.error('[API /parse-cv]', err);
     return NextResponse.json({ error: 'Impossible de lire le PDF.' }, { status: 500 });
