@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PDFParse } from 'pdf-parse';
+import pdfParse from 'pdf-parse/lib/pdf-parse';
 
 const KNOWN_SKILLS = [
   // Langages
@@ -166,8 +166,7 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const parser = new PDFParse({ data: buffer });
-    const parsed = await parser.getText();
+    const parsed = await pdfParse(buffer);
     const skills = extractSkills(parsed.text);
 
     return NextResponse.json({ skills, charCount: parsed.text.length });
