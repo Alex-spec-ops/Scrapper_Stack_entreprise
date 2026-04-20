@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-// Disable worker in Node.js/serverless environment
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
+
+// Disable worker — required for Node.js/serverless environments
 pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
 const KNOWN_SKILLS = [
@@ -155,7 +158,13 @@ function extractSkills(text: string): string[] {
 
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   const uint8Array = new Uint8Array(buffer);
-  const loadingTask = pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 });
+  const loadingTask = pdfjsLib.getDocument({
+    data: uint8Array,
+    verbosity: 0,
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: true,
+  });
   const pdf = await loadingTask.promise;
 
   let fullText = '';
