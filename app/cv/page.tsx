@@ -12,6 +12,7 @@ const ALL_SOURCES = [
   { id: 'adzuna', label: 'Adzuna' },
   { id: 'meteojob', label: 'Meteojob' },
   { id: 'indeed', label: 'Indeed' },
+  { id: 'linkedin', label: 'LinkedIn' },
 ];
 
 const ALL_COUNTRIES = [

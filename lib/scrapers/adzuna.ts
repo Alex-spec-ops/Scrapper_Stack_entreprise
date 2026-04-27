@@ -16,7 +16,7 @@ async function fetchAdzunaSkill(skill: string, skills: string[], country: Countr
   const locationParam = LOCATION_PARAM[country];
   const jobs: Job[] = [];
   try {
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= 10; page++) {
       const res = await axios.get<string>(`${BASE}/search?q=${encodeURIComponent(skill)}${locationParam}&p=${page}`, {
         headers: {
           'User-Agent':

@@ -44,7 +44,7 @@ function findJobsArray(obj: unknown, depth = 0): LesJeudisJob[] | null {
 async function fetchLesJeudisSkill(skill: string, skills: string[]): Promise<Job[]> {
   const jobs: Job[] = [];
   try {
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= 10; page++) {
       const res = await axios.get<string>(`${BASE}/recherche?q=${encodeURIComponent(skill)}&page=${page}`, {
         headers: {
           'User-Agent':

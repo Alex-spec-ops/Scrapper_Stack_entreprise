@@ -40,7 +40,7 @@ interface MeteojobState {
 async function fetchMeteojobSkill(skill: string, skills: string[]): Promise<Job[]> {
   const jobs: Job[] = [];
   try {
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= 10; page++) {
       const res = await axios.get<string>(`${BASE}/jobs?q=${encodeURIComponent(skill)}&page=${page}`, {
         headers: {
           'User-Agent':
