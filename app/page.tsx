@@ -6,7 +6,7 @@ import SearchBar from './components/SearchBar';
 import JobCard from './components/JobCard';
 import CompanyCard from './components/CompanyCard';
 import ErrorOverlay from './components/ErrorOverlay';
-import { Job, Company, JobSource, SOURCE_LABELS } from '../lib/types';
+import { Job, Company, JobSource, Country, SOURCE_LABELS } from '../lib/types';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
@@ -36,6 +36,7 @@ function HomeContent() {
   const lastSearchRef = useRef<{ skills: string[]; sources: string[]; countries: string[] } | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('companies');
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
+  const [activeCountry, setActiveCountry] = useState<Country | 'all'>('all');
   const [activeCity, setActiveCity] = useState<string>('all');
   const [activeContract, setActiveContract] = useState<string>('all');
   const [searchedSkills, setSearchedSkills] = useState<string[]>([]);
@@ -93,6 +94,7 @@ function HomeContent() {
     setResult(null);
     setSearchedSkills(skills);
     setActiveSource('all');
+    setActiveCountry('all');
     setActiveCity('all');
     setActiveContract('all');
 
@@ -176,8 +178,9 @@ function HomeContent() {
       })
     : [];
 
-  const jobMatchesFilters = (j: { source: string; location: string; contractType?: string }) =>
+  const jobMatchesFilters = (j: { source: string; location: string; contractType?: string; country?: string }) =>
     (activeSource === 'all' || j.source === activeSource) &&
+    (activeCountry === 'all' || j.country === activeCountry) &&
     (activeCity === 'all' || normalizeCity(j.location) === activeCity) &&
     (activeContract === 'all' || (j.contractType ? normalizeContract(j.contractType) : '') === activeContract);
 
@@ -197,6 +200,25 @@ function HomeContent() {
       {} as Record<JobSource, number>
     )
     : null;
+
+  const COUNTRY_META: { id: Country; flag: string; label: string }[] = [
+    { id: 'fr', flag: '🇫🇷', label: 'France' },
+    { id: 'be', flag: '🇧🇪', label: 'Belgique' },
+  ];
+
+  const countryCounts = result
+    ? COUNTRY_META.reduce(
+        (acc, c) => {
+          acc[c.id] = result.jobs.filter((j) => j.country === c.id).length;
+          return acc;
+        },
+        {} as Record<Country, number>
+      )
+    : null;
+
+  const hasMultipleCountries =
+    countryCounts !== null &&
+    COUNTRY_META.filter((c) => (countryCounts[c.id] ?? 0) > 0).length > 1;
 
   return (
     <>
@@ -403,6 +425,35 @@ function HomeContent() {
                 </button>
               </div>
             </div>
+
+            {/* Country filter tabs — visible uniquement si les deux pays ont des résultats */}
+            {hasMultipleCountries && countryCounts && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  onClick={() => { setActiveCountry('all'); setActiveCity('all'); }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
+                    activeCountry === 'all'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
+                      : 'bg-white text-gray-400 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  Tous les pays ({result!.totalJobs})
+                </button>
+                {COUNTRY_META.filter((c) => (countryCounts[c.id] ?? 0) > 0).map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => { setActiveCountry(c.id); setActiveCity('all'); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
+                      activeCountry === c.id
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
+                        : 'bg-white text-gray-400 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    {c.flag} {c.label} ({countryCounts[c.id]})
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Source filter tabs */}
             {sourceCounts && (
