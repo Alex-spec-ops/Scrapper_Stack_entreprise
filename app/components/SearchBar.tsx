@@ -30,6 +30,8 @@ const ALL_SOURCES = [
   { id: 'meteojob', label: 'Meteojob' },
   { id: 'indeed', label: 'Indeed' },
   { id: 'linkedin', label: 'LinkedIn' },
+  { id: 'travaillerpour', label: 'Travaillerpour.be' },
+  { id: 'stepstone', label: 'StepStone' },
 ];
 
 

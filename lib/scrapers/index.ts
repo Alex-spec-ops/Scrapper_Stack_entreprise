@@ -6,6 +6,8 @@ import { scrapeAdzuna } from './adzuna';
 import { scrapeMeteojob } from './meteojob';
 import { scrapeIndeed } from './indeed';
 import { scrapeLinkedIn } from './linkedin';
+import { scrapeTravaillerpour } from './travaillerpour';
+import { scrapeStepstone } from './stepstone';
 
 /**
  * Vérifie si une compétence apparaît comme mot entier dans un texte.
@@ -145,7 +147,7 @@ export async function scrapeAll(
   sources?: string[],
   countries?: string[]
 ): Promise<SearchResult> {
-  const allSources = ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob', 'indeed', 'linkedin'];
+  const allSources = ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob', 'indeed', 'linkedin', 'travaillerpour', 'stepstone'];
   const activeSources = sources?.length ? sources : allSources;
   const activeCountries = (countries?.length ? countries : ['fr']) as Country[];
 
@@ -167,8 +169,10 @@ export async function scrapeAll(
   if (hasBe) {
     if (activeSources.includes('wttj'))     scrapers.push(scrapeWttj(skills, 'be'));
     if (activeSources.includes('adzuna'))   scrapers.push(scrapeAdzuna(skills, 'be'));
-    if (activeSources.includes('indeed'))   scrapers.push(scrapeIndeed(skills, 'be'));
-    if (activeSources.includes('linkedin')) scrapers.push(scrapeLinkedIn(skills));
+    if (activeSources.includes('indeed'))          scrapers.push(scrapeIndeed(skills, 'be'));
+    if (activeSources.includes('linkedin'))        scrapers.push(scrapeLinkedIn(skills));
+    if (activeSources.includes('travaillerpour'))  scrapers.push(scrapeTravaillerpour(skills));
+    if (activeSources.includes('stepstone'))       scrapers.push(scrapeStepstone(skills));
   }
 
   const results = await Promise.allSettled(scrapers);
