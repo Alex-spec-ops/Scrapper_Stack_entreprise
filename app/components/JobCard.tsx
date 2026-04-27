@@ -25,93 +25,75 @@ export default function JobCard({ job }: Props) {
       href={job.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-50 hover:border-indigo-200 transition-all duration-300 overflow-hidden"
+      className="group flex flex-col bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/30 hover:border-indigo-400/20 transition-all duration-300 overflow-hidden hover:-translate-y-1 animate-in fade-in zoom-in duration-500"
     >
-      {/* Top accent bar */}
-      <div className="h-0.5 w-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      <div className="flex flex-col gap-4 p-5 flex-1">
-        {/* Header : logo + titre + source */}
-        <div className="flex items-start gap-3">
-          {/* Logo */}
-          <div className="flex-shrink-0">
+      <div className="flex flex-col gap-4 p-6 flex-1">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
             {job.companyLogo ? (
               <img
                 src={job.companyLogo}
                 alt={job.company}
-                className="h-11 w-11 rounded-xl object-contain border border-slate-100 bg-white shadow-sm"
+                className="h-12 w-12 rounded-xl object-contain border border-white bg-white shadow-sm"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center"><span class="text-indigo-600 font-bold text-base">${job.company.charAt(0).toUpperCase()}</span></div>`;
+                  (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center border border-indigo-100/50"><span class="text-indigo-600 font-black text-lg">${job.company.charAt(0).toUpperCase()}</span></div>`;
                 }}
               />
             ) : (
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center shadow-sm">
-                <span className="text-indigo-600 font-bold text-base">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center border border-indigo-100/50 shadow-sm">
+                <span className="text-indigo-600 font-black text-lg">
                   {job.company.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Titre + entreprise */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-tight line-clamp-2 text-sm">
+            <h3 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight line-clamp-2 text-base tracking-tight mb-1">
               {job.title}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium line-clamp-1">{job.company}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{job.company}</p>
           </div>
-
-          {/* Source badge */}
-          <span className={`flex-shrink-0 inline-flex items-center rounded-full font-semibold px-2 py-0.5 text-[10px] uppercase tracking-wide ${SOURCE_COLORS[job.source]}`}>
-            {SOURCE_LABELS[job.source]}
-          </span>
         </div>
 
-        {/* Chips : localisation, contrat, salaire */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {job.location && (
-            <span className="inline-flex items-center gap-1 bg-slate-50 text-gray-500 border border-slate-100 rounded-lg px-2.5 py-1 text-[11px] font-medium">
-              <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <span className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-500 border border-slate-100/50 rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-tight">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               </svg>
-              <span className="truncate max-w-[120px]">{job.location}</span>
+              {job.location.split(',')[0]}
             </span>
           )}
           {job.contractType && (
-            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg px-2.5 py-1 text-[11px] font-bold">
-              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+            <span className="inline-flex items-center gap-1.5 bg-indigo-50/50 text-indigo-600 border border-indigo-100/50 rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-tight">
               {job.contractType}
             </span>
           )}
           {job.salary && (
-            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg px-2.5 py-1 text-[11px] font-bold">
-              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100/50 rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-tight">
               {job.salary}
             </span>
           )}
         </div>
 
-        {/* Description */}
         {job.description && (
-          <p className="text-[12px] text-gray-500 line-clamp-2 leading-relaxed flex-1">
-            {job.description}
+          <p className="text-[13px] text-slate-500 line-clamp-3 leading-relaxed flex-1 font-medium italic">
+            &ldquo;{job.description}&rdquo;
           </p>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between px-5 py-3 bg-slate-50/80 border-t border-slate-100">
-        <span className="text-[11px] text-gray-400 font-medium">
-          {job.publishedAt ? formatDate(job.publishedAt) : ''}
-        </span>
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-500 group-hover:text-indigo-700 transition-colors">
-          Voir l&apos;offre
-          <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between px-6 py-4 bg-slate-50/30 backdrop-blur-sm border-t border-white/50">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${SOURCE_COLORS[job.source].split(' ')[0]}`} />
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.1em]">
+            {SOURCE_LABELS[job.source]} • {job.publishedAt ? formatDate(job.publishedAt) : ''}
+          </span>
+        </div>
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-indigo-600 group-hover:text-indigo-700 transition-all">
+          Détails
+          <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </span>

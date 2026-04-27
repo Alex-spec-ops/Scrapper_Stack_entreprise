@@ -242,108 +242,112 @@ function HomeContent() {
         />
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="relative min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-700">
+      {/* Premium Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-200/30 blur-[120px] animate-mesh" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-200/30 blur-[120px] animate-mesh" style={{ animationDelay: '-5s' }} />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-blue-200/20 blur-[100px] animate-mesh" style={{ animationDelay: '-10s' }} />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+      </div>
+
       {/* Header */}
-      <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 hover:scale-105 transition-transform cursor-pointer">
-            <img src="/skill_hunt.png" alt="SkillHunt logo" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-indigo-100" />
-            <span className="font-bold text-gray-900 text-lg tracking-tight">SkillHunt</span>
-          </Link>
+      <header className="sticky top-4 z-40 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <nav className="bg-white/70 backdrop-blur-md border border-white/50 shadow-lg shadow-indigo-50/50 rounded-2xl px-6 h-16 flex items-center justify-between transition-all duration-300">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <img src="/skill_hunt.png" alt="SkillHunt logo" className="w-9 h-9 rounded-xl object-cover shadow-md group-hover:scale-110 transition-transform duration-300" />
+                <div className="absolute -inset-1 bg-indigo-500/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <span className="font-black text-slate-900 text-xl tracking-tight">SkillHunt</span>
+            </Link>
 
-          <div className="flex items-center gap-4 sm:gap-6">
-            <nav className="hidden md:flex items-center gap-4 text-xs font-semibold text-gray-400">
-              <span className="uppercase tracking-widest text-[10px]">5 sources</span>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <span className="uppercase tracking-widest text-[10px]">Temps réel</span>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <Link
-                href="/cv"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 font-bold text-[10px] uppercase tracking-wide"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Analyser un CV
-              </Link>
-            </nav>
-
-            <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
-            {user ? (
-              <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className="hidden md:flex items-center gap-4 text-xs font-semibold text-gray-400">
+                <span className="uppercase tracking-widest text-[10px]">5 sources</span>
+                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                <span className="uppercase tracking-widest text-[10px]">Temps réel</span>
+                <span className="w-1 h-1 rounded-full bg-gray-300" />
                 <Link
-                  href="/history"
-                  className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors bg-slate-100/50 px-3 py-1.5 rounded-lg"
+                  href="/cv"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 font-bold text-[10px] uppercase tracking-wide"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Historique
+                  Analyser un CV
                 </Link>
-                <div className="relative group">
-                  <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                    <span className="text-xs font-bold text-gray-700 hidden sm:inline truncate max-w-[120px]">
-                      {user.email?.split('@')[0]}
-                    </span>
-                    <div className="w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-[10px] font-bold">
-                      {user.email?.charAt(0).toUpperCase()}
-                    </div>
-                  </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1 z-20">
-                    <Link href="/history" className="block px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-slate-50 transition-colors">
-                      Mon historique
-                    </Link>
-                    <div className="h-px bg-slate-50 my-1" />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      Déconnexion
+              </div>
+
+              <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/history"
+                    className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors bg-slate-100/50 px-3 py-1.5 rounded-lg"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Historique
+                  </Link>
+                  <div className="relative group">
+                    <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                      <span className="text-xs font-bold text-gray-700 hidden sm:inline truncate max-w-[120px]">
+                        {user.email?.split('@')[0]}
+                      </span>
+                      <div className="w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-[10px] font-bold">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </div>
                     </button>
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1 z-20">
+                      <Link href="/history" className="block px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-slate-50 transition-colors">
+                        Mon historique
+                      </Link>
+                      <div className="h-px bg-slate-50 my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        Déconnexion
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-all shadow-lg shadow-slate-100 hover:shadow-indigo-100"
-              >
-                Connexion
-              </Link>
-            )}
-          </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-all shadow-lg shadow-slate-100 hover:shadow-indigo-100"
+                >
+                  Connexion
+                </Link>
+              )}
+            </div>
+          </nav>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero */}
-        <section className="py-16 text-center">
+        <section className="relative py-12 lg:py-20 text-center">
+          {/* Soft glow behind hero */}
+          <div className="absolute inset-x-0 top-0 h-full max-w-5xl mx-auto bg-gradient-to-b from-indigo-50/60 via-purple-50/20 to-transparent blur-3xl -z-10 rounded-full" />
 
-
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-6">
-            Trouvez les entreprises qui{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-              recrutent vos skills
+          {/* H1 — two clean lines */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 tracking-tight mb-6 leading-none">
+            <span className="block mb-1">Trouvez les entreprises</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600">
+              qui recrutent vos skills
             </span>
           </h1>
 
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-            Entrez vos compétences, on scrape en temps réel les plateformes d&apos;emploi françaises
-            et on détecte les entreprises qui misent sur votre profil.
+          {/* Sub-headline */}
+          <p className="text-base sm:text-lg text-slate-500 max-w-xl mx-auto mb-10 leading-relaxed">
+            Saisissez vos compétences techniques — on détecte en temps réel les entreprises qui{' '}
+            <strong className="text-slate-800 font-semibold">misent vraiment</strong>{' '}sur votre profil.
           </p>
-
-          <div className="flex justify-center mb-4">
-            <Link
-              href="/cv"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-300 text-indigo-600 font-bold text-xs uppercase tracking-wide transition-all"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Analyser un CV à la place
-            </Link>
-          </div>
 
           <SearchBar onSearch={handleSearch} loading={loading} />
         </section>
@@ -582,15 +586,16 @@ function HomeContent() {
 
         {/* Empty state initial */}
         {!result && !loading && !error && (
-          <div className="text-center pb-24">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Popular Skills</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
+          <div className="text-center pb-24 pt-6">
+            <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.25em] mb-6">Ou essayez un skill populaire</p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-3xl mx-auto">
               {[
-                { name: 'Python', color: 'from-[#4B8BBE] to-[#FFE873]' },
-                { name: 'React', color: 'from-[#61DAFB] to-[#2188FF]' },
-                { name: 'DevOps', color: 'from-[#2496ED] to-[#01DB80]' },
-                { name: 'Node.js', color: 'from-[#339933] to-[#83CD29]' },
-                { name: 'TypeScript', color: 'from-[#3178C6] to-[#007ACC]' },
+                { name: 'Python', emoji: '🐍', color: 'from-blue-500 to-yellow-400' },
+                { name: 'React', emoji: '⚛️', color: 'from-cyan-400 to-blue-500' },
+                { name: 'DevOps', emoji: '🚀', color: 'from-blue-400 to-emerald-500' },
+                { name: 'Node.js', emoji: '🟢', color: 'from-green-500 to-teal-500' },
+                { name: 'TypeScript', emoji: '💙', color: 'from-blue-600 to-blue-400' },
               ].map((example) => (
                 <button
                   key={example.name}
@@ -600,10 +605,11 @@ function HomeContent() {
                       ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob']
                     )
                   }
-                  className={`group relative p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 overflow-hidden`}
+                  className="group relative flex flex-col items-center gap-2 p-5 rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm hover:shadow-xl hover:shadow-indigo-100/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${example.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
-                  <span className="relative font-extrabold text-gray-800 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${example.color} opacity-0 group-hover:opacity-[0.06] transition-opacity duration-300`} />
+                  <span className="text-2xl">{example.emoji}</span>
+                  <span className="relative text-sm font-black text-slate-800 group-hover:text-indigo-600 transition-colors tracking-tight">
                     {example.name}
                   </span>
                 </button>
