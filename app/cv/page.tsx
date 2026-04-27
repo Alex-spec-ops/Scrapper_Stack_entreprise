@@ -11,6 +11,12 @@ const ALL_SOURCES = [
   { id: 'lesjeudis', label: 'LesJeudis' },
   { id: 'adzuna', label: 'Adzuna' },
   { id: 'meteojob', label: 'Meteojob' },
+  { id: 'indeed', label: 'Indeed' },
+];
+
+const ALL_COUNTRIES = [
+  { id: 'fr', label: '🇫🇷 France' },
+  { id: 'be', label: '🇧🇪 Belgique' },
 ];
 
 type Step = 'upload' | 'review';
@@ -28,6 +34,7 @@ export default function CvPage() {
   const [skills, setSkills] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>(ALL_SOURCES.map((s) => s.id));
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(['fr']);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -100,6 +107,13 @@ export default function CvPage() {
     );
   }
 
+  function toggleCountry(id: string) {
+    setSelectedCountries((prev) => {
+      const next = prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id];
+      return next.length === 0 ? prev : next;
+    });
+  }
+
   async function handleSearch() {
     if (skills.length === 0 || selectedSources.length === 0) return;
 
@@ -113,6 +127,7 @@ export default function CvPage() {
     const params = new URLSearchParams({
       skills: skills.join(','),
       sources: selectedSources.join(','),
+      countries: selectedCountries.join(','),
     });
     router.push(`/?${params.toString()}`);
   }
@@ -299,6 +314,27 @@ export default function CvPage() {
                 >
                   Ajouter
                 </button>
+              </div>
+            </div>
+
+            {/* Filtres pays */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Pays</p>
+              <div className="flex flex-wrap gap-2">
+                {ALL_COUNTRIES.map((country) => (
+                  <button
+                    key={country.id}
+                    onClick={() => toggleCountry(country.id)}
+                    type="button"
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      selectedCountries.includes(country.id)
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    {country.label}
+                  </button>
+                ))}
               </div>
             </div>
 

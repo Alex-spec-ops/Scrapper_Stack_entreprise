@@ -79,6 +79,7 @@ async function fetchMeteojobSkill(skill: string, skills: string[]): Promise<Job[
           publishedAt: offer.publicationDate,
           url,
           source: 'meteojob',
+          country: 'fr',
         });
       }
     }

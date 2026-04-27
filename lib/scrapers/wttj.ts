@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { Job, ScraperResult } from '../types';
+import { Country, Job, ScraperResult } from '../types';
 
 const WTTJ_HOME = 'https://www.welcometothejungle.com';
 const ALGOLIA_DSN = 'https://CSEKHVMS53-dsn.algolia.net';
@@ -102,7 +102,7 @@ function buildAlgoliaQuery(skills: string[]): string {
   return skills.map((s) => `"${s}"`).join(' OR ');
 }
 
-export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
+export async function scrapeWttj(skills: string[], country: Country = 'fr'): Promise<ScraperResult> {
   const query = buildAlgoliaQuery(skills);
 
   // Récupérer la config Algolia dynamique
@@ -110,7 +110,7 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
   const appId = envConfig?.ALGOLIA_APPLICATION_ID ?? 'CSEKHVMS53';
   const apiKey = envConfig?.ALGOLIA_API_KEY_CLIENT ?? '4bd8f6215d0cc52b26430765769e65a0';
   const indexPrefix = envConfig?.ALGOLIA_JOBS_INDEX_PREFIX ?? 'wttj_jobs_production';
-  const index = `${indexPrefix}_fr`;
+  const index = `${indexPrefix}_${country}`;
 
   const allJobs: Job[] = [];
 
@@ -155,11 +155,12 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
       const hits: AlgoliaHit[] = response.data.hits ?? [];
       if (hits.length === 0) break;
 
+      const countryLabel = country === 'be' ? 'Belgique' : 'France';
       const jobs: Job[] = hits.map((hit) => {
-        const city = hit.offices?.[0]?.city ?? hit.office?.city ?? 'France';
+        const city = hit.offices?.[0]?.city ?? hit.office?.city ?? countryLabel;
         const missions = extractMissions(hit);
         return {
-          id: `wttj-${hit.objectID ?? Math.random()}`,
+          id: `wttj-${country}-${hit.objectID ?? Math.random()}`,
           title: hit.name ?? 'Poste non précisé',
           company: hit.organization?.name ?? 'Entreprise confidentielle',
           companyLogo: getLogoUrl(hit.organization),
@@ -174,6 +175,7 @@ export async function scrapeWttj(skills: string[]): Promise<ScraperResult> {
               ? `${WTTJ_HOME}/fr/companies/${hit.organization.slug}/jobs/${hit.slug}`
               : `${WTTJ_HOME}/fr/jobs`,
           source: 'wttj',
+          country,
         };
       });
 

@@ -33,7 +33,7 @@ function HomeContent() {
 
   const [authRequired, setAuthRequired] = useState(false);
 
-  const lastSearchRef = useRef<{ skills: string[]; sources: string[] } | null>(null);
+  const lastSearchRef = useRef<{ skills: string[]; sources: string[]; countries: string[] } | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('companies');
   const [activeSource, setActiveSource] = useState<JobSource | 'all'>('all');
   const [activeCity, setActiveCity] = useState<string>('all');
@@ -58,10 +58,12 @@ function HomeContent() {
     // Re-run search if params are present (from History page)
     const skillsParam = searchParams.get('skills');
     const sourcesParam = searchParams.get('sources');
+    const countriesParam = searchParams.get('countries');
     if (skillsParam) {
       const skills = skillsParam.split(',');
       const sources = sourcesParam ? sourcesParam.split(',') : SOURCE_IDS;
-      handleSearch(skills, sources);
+      const countries = countriesParam ? countriesParam.split(',') : ['fr'];
+      handleSearch(skills, sources, countries);
     }
   }, [searchParams]);
 
@@ -71,7 +73,7 @@ function HomeContent() {
     router.refresh();
   };
 
-  async function handleSearch(skills: string[], sources: string[]) {
+  async function handleSearch(skills: string[], sources: string[], countries: string[] = ['fr']) {
     // Vérification de l'authentification avant de lancer la recherche
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
@@ -82,7 +84,7 @@ function HomeContent() {
     }
 
     // Mémorise la dernière recherche pour le bouton Réessayer
-    lastSearchRef.current = { skills, sources };
+    lastSearchRef.current = { skills, sources, countries };
 
     setAuthRequired(false);
     setConnectionError(false);
@@ -98,7 +100,7 @@ function HomeContent() {
       const res = await fetch('/api/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skills, sources }),
+        body: JSON.stringify({ skills, sources, countries }),
       });
 
       if (!res.ok) {

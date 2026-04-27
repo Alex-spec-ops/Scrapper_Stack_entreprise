@@ -12,8 +12,13 @@ const AMBIGUOUS_SUGGESTIONS: Record<string, string> = {
   rust: 'Rust (langage)',
 };
 
+const ALL_COUNTRIES = [
+  { id: 'fr', label: '🇫🇷 France' },
+  { id: 'be', label: '🇧🇪 Belgique' },
+];
+
 interface Props {
-  onSearch: (skills: string[], sources: string[]) => void;
+  onSearch: (skills: string[], sources: string[], countries: string[]) => void;
   loading: boolean;
 }
 
@@ -23,6 +28,7 @@ const ALL_SOURCES = [
   { id: 'lesjeudis', label: 'LesJeudis' },
   { id: 'adzuna', label: 'Adzuna' },
   { id: 'meteojob', label: 'Meteojob' },
+  { id: 'indeed', label: 'Indeed' },
 ];
 
 
@@ -32,6 +38,7 @@ export default function SearchBar({ onSearch, loading }: Props) {
   const [selectedSources, setSelectedSources] = useState<string[]>(
     ALL_SOURCES.map((s) => s.id)
   );
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(['fr']);
 
   // Détecte les compétences ambiguës dans la liste de tags
   const ambiguousWarnings = useMemo(() => {
@@ -57,7 +64,7 @@ export default function SearchBar({ onSearch, loading }: Props) {
       if (input.trim()) {
         addTag(input);
       } else if (tags.length > 0) {
-        onSearch(tags, selectedSources);
+        onSearch(tags, selectedSources, selectedCountries);
       }
     } else if (e.key === 'Backspace' && input === '' && tags.length > 0) {
       setTags((prev) => prev.slice(0, -1));
@@ -74,12 +81,19 @@ export default function SearchBar({ onSearch, loading }: Props) {
     );
   }
 
+  function toggleCountry(id: string) {
+    setSelectedCountries((prev) => {
+      const next = prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id];
+      return next.length === 0 ? prev : next; // au moins un pays requis
+    });
+  }
+
   function handleSubmit() {
     const allTags = input.trim() ? [...tags, input.trim()] : tags;
     if (allTags.length === 0) return;
     if (input.trim()) setTags(allTags);
     setInput('');
-    onSearch(allTags, selectedSources);
+    onSearch(allTags, selectedSources, selectedCountries);
   }
 
   return (
@@ -174,8 +188,28 @@ export default function SearchBar({ onSearch, loading }: Props) {
         </div>
       )}
 
+      {/* Sélecteur de pays */}
+      <div className="mt-4 flex flex-wrap justify-center gap-2 items-center">
+        <span className="text-xs text-gray-400 font-medium mr-1">Pays :</span>
+        {ALL_COUNTRIES.map((country) => (
+          <button
+            key={country.id}
+            onClick={() => toggleCountry(country.id)}
+            type="button"
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 ${
+              selectedCountries.includes(country.id)
+                ? 'bg-indigo-600 text-white border-indigo-600'
+                : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+            }`}
+          >
+            {country.label}
+          </button>
+        ))}
+      </div>
+
       {/* Filtres sources */}
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className="mt-3 flex flex-wrap justify-center gap-2 items-center">
+        <span className="text-xs text-gray-400 font-medium mr-1">Sources :</span>
         {ALL_SOURCES.map((source) => (
           <button
             key={source.id}

@@ -81,6 +81,7 @@ async function fetchLesJeudisSkill(skill: string, skills: string[]): Promise<Job
           publishedAt: hit.published,
           url: hit.url?.path ? `${BASE}${hit.url.path}` : `${BASE}/recherche?q=${encodeURIComponent(skill)}`,
           source: 'lesjeudis',
+          country: 'fr',
         });
       }
     }

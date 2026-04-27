@@ -6,9 +6,10 @@ export const maxDuration = 60; // Vercel: 60 secondes max
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { skills, sources } = body as {
+    const { skills, sources, countries } = body as {
       skills?: string[];
       sources?: string[];
+      countries?: string[];
     };
 
     if (!skills || !Array.isArray(skills) || skills.length === 0) {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await scrapeAll(cleanedSkills, sources);
+    const result = await scrapeAll(cleanedSkills, sources, countries);
 
     return NextResponse.json(result);
   } catch (err) {

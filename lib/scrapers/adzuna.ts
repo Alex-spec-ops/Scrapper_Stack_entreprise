@@ -1,14 +1,23 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { Job, ScraperResult } from '../types';
+import { Country, Job, ScraperResult } from '../types';
 
-const BASE = 'https://www.adzuna.fr';
+const BASES: Record<Country, string> = {
+  fr: 'https://www.adzuna.fr',
+  be: 'https://www.adzuna.be',
+};
+const LOCATION_PARAM: Record<Country, string> = {
+  fr: '&w=France',
+  be: '',
+};
 
-async function fetchAdzunaSkill(skill: string, skills: string[]): Promise<Job[]> {
+async function fetchAdzunaSkill(skill: string, skills: string[], country: Country): Promise<Job[]> {
+  const BASE = BASES[country];
+  const locationParam = LOCATION_PARAM[country];
   const jobs: Job[] = [];
   try {
     for (let page = 1; page <= 3; page++) {
-      const res = await axios.get<string>(`${BASE}/search?q=${encodeURIComponent(skill)}&w=France&p=${page}`, {
+      const res = await axios.get<string>(`${BASE}/search?q=${encodeURIComponent(skill)}${locationParam}&p=${page}`, {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -28,12 +37,13 @@ async function fetchAdzunaSkill(skill: string, skills: string[]): Promise<Job[]>
         if (!title) return;
         const url = titleEl.attr('href') ?? `${BASE}/details/${aid}`;
         const company = $(el).find('.ui-company').first().text().trim();
-        const location = $(el).find('.ui-location').first().text().trim() || 'France';
+        const defaultLocation = country === 'be' ? 'Belgique' : 'France';
+        const location = $(el).find('.ui-location').first().text().trim() || defaultLocation;
         const logoSrc = $(el).find('.ui-logo-col img').attr('src');
         const companyLogo = logoSrc ? (logoSrc.startsWith('//') ? `https:${logoSrc}` : logoSrc) : undefined;
         const description = $(el).find('.max-snippet-height').text().trim();
         jobsInPage.push({
-          id: `adzuna-${aid}`,
+          id: `adzuna-${country}-${aid}`,
           title,
           company: company || 'Entreprise confidentielle',
           companyLogo,
@@ -42,6 +52,7 @@ async function fetchAdzunaSkill(skill: string, skills: string[]): Promise<Job[]>
           skills,
           url: url.startsWith('http') ? url : `${BASE}${url}`,
           source: 'adzuna',
+          country,
         });
       });
       if (jobsInPage.length === 0) break;
@@ -53,10 +64,9 @@ async function fetchAdzunaSkill(skill: string, skills: string[]): Promise<Job[]>
   return jobs;
 }
 
-export async function scrapeAdzuna(skills: string[]): Promise<ScraperResult> {
+export async function scrapeAdzuna(skills: string[], country: Country = 'fr'): Promise<ScraperResult> {
   try {
-    // Une requête par skill en parallèle → au moins un skill suffit
-    const perSkill = await Promise.all(skills.map((s) => fetchAdzunaSkill(s, skills)));
+    const perSkill = await Promise.all(skills.map((s) => fetchAdzunaSkill(s, skills, country)));
 
     const seen = new Set<string>();
     const allJobs: Job[] = [];

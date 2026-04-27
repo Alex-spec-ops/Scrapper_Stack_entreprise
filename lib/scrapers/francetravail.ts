@@ -101,6 +101,7 @@ async function fetchForSkill(skill: string, token: string, skills: string[]): Pr
             offre.origineOffre?.urlOrigine ??
             `https://candidat.francetravail.fr/offres/recherche/detail/${offre.id}`,
           source: 'francetravail',
+          country: 'fr',
         });
       }
       if (offres.length < pageSize) break;

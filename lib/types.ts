@@ -1,4 +1,5 @@
-export type JobSource = 'wttj' | 'francetravail' | 'lesjeudis' | 'adzuna' | 'meteojob';
+export type JobSource = 'wttj' | 'francetravail' | 'lesjeudis' | 'adzuna' | 'meteojob' | 'indeed';
+export type Country = 'fr' | 'be';
 
 export interface Job {
   id: string;
@@ -13,6 +14,7 @@ export interface Job {
   publishedAt?: string;
   url: string;
   source: JobSource;
+  country: Country;
 }
 
 export interface Company {
@@ -41,6 +43,7 @@ export const SOURCE_LABELS: Record<JobSource, string> = {
   lesjeudis: 'LesJeudis',
   adzuna: 'Adzuna',
   meteojob: 'Meteojob',
+  indeed: 'Indeed',
 };
 
 export const SOURCE_COLORS: Record<JobSource, string> = {
@@ -49,4 +52,5 @@ export const SOURCE_COLORS: Record<JobSource, string> = {
   lesjeudis: 'bg-teal-100 text-teal-800',
   adzuna: 'bg-emerald-100 text-emerald-800',
   meteojob: 'bg-sky-100 text-sky-800',
+  indeed: 'bg-blue-100 text-blue-800',
 };

@@ -1,9 +1,10 @@
-import { Company, Job, ScraperResult, SearchResult } from '../types';
+import { Company, Country, Job, ScraperResult, SearchResult } from '../types';
 import { scrapeFranceTravail } from './francetravail';
 import { scrapeWttj } from './wttj';
 import { scrapeLesJeudis } from './lesjeudis';
 import { scrapeAdzuna } from './adzuna';
 import { scrapeMeteojob } from './meteojob';
+import { scrapeIndeed } from './indeed';
 
 /**
  * Vérifie si une compétence apparaît comme mot entier dans un texte.
@@ -140,18 +141,33 @@ function groupByCompany(jobs: Job[]): Company[] {
 
 export async function scrapeAll(
   skills: string[],
-  sources?: string[]
+  sources?: string[],
+  countries?: string[]
 ): Promise<SearchResult> {
-  const allSources = ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob'];
+  const allSources = ['wttj', 'francetravail', 'lesjeudis', 'adzuna', 'meteojob', 'indeed'];
   const activeSources = sources?.length ? sources : allSources;
+  const activeCountries = (countries?.length ? countries : ['fr']) as Country[];
+
+  const hasFr = activeCountries.includes('fr');
+  const hasBe = activeCountries.includes('be');
 
   const scrapers: Promise<ScraperResult>[] = [];
 
-  if (activeSources.includes('wttj')) scrapers.push(scrapeWttj(skills));
-  if (activeSources.includes('francetravail')) scrapers.push(scrapeFranceTravail(skills));
-  if (activeSources.includes('lesjeudis')) scrapers.push(scrapeLesJeudis(skills));
-  if (activeSources.includes('adzuna')) scrapers.push(scrapeAdzuna(skills));
-  if (activeSources.includes('meteojob')) scrapers.push(scrapeMeteojob(skills));
+  // Sources France
+  if (hasFr) {
+    if (activeSources.includes('wttj')) scrapers.push(scrapeWttj(skills, 'fr'));
+    if (activeSources.includes('francetravail')) scrapers.push(scrapeFranceTravail(skills));
+    if (activeSources.includes('lesjeudis')) scrapers.push(scrapeLesJeudis(skills));
+    if (activeSources.includes('adzuna')) scrapers.push(scrapeAdzuna(skills, 'fr'));
+    if (activeSources.includes('meteojob')) scrapers.push(scrapeMeteojob(skills));
+  }
+
+  // Sources Belgique (WTTJ + Adzuna + Indeed supportent BE)
+  if (hasBe) {
+    if (activeSources.includes('wttj')) scrapers.push(scrapeWttj(skills, 'be'));
+    if (activeSources.includes('adzuna')) scrapers.push(scrapeAdzuna(skills, 'be'));
+    if (activeSources.includes('indeed')) scrapers.push(scrapeIndeed(skills, 'be'));
+  }
 
   const results = await Promise.allSettled(scrapers);
 
