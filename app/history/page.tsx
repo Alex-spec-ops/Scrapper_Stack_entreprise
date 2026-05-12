@@ -20,7 +20,7 @@ export default async function HistoryPage() {
   }
 
   const { data: history, error } = await supabase
-    .from('search_history')
+    .from('user_searches')
     .select('*')
     .order('created_at', { ascending: false });
 

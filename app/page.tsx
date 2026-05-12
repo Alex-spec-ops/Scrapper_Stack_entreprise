@@ -19,6 +19,7 @@ interface SearchResult {
 
 interface UserSession {
   email?: string;
+  role?: string;
 }
 
 type ViewMode = 'jobs' | 'companies';
@@ -51,7 +52,12 @@ function HomeContent() {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        setUser({ email: session.user.email });
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        setUser({ email: session.user.email, role: profile?.role });
       }
     };
     checkUser();
@@ -284,6 +290,17 @@ function HomeContent() {
 
               {user ? (
                 <div className="flex items-center gap-3">
+                  {(user.role === 'admin' || user.email === 'alexdecarbof71@gmail.com') && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Admin
+                    </Link>
+                  )}
                   <Link
                     href="/history"
                     className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors bg-slate-100/50 px-3 py-1.5 rounded-lg"
