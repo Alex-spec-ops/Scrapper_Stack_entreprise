@@ -3,24 +3,31 @@ import StatCard from "../components/admin/StatCard";
 import InsightPanel from "../components/admin/InsightPanel";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  // Fetch stats
-  const { count: userCount } = await supabase
+  // 1. Fetch total users from profiles
+  const { count: userCount, error: userError } = await supabase
     .from("profiles")
     .select("*", { count: "exact", head: true });
 
-  const { count: searchCount } = await supabase
-    .from("user_searches")
-    .select("*", { count: "exact", head: true });
+  if (userError) console.error("Admin Debug - User Error:", userError);
 
-  const { data: recentSearches } = await supabase
-    .from("user_searches")
-    .select("skills, created_at")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  // 2. Fetch searches from search_history
+  const { data: allData, error: searchError } = await supabase
+    .from("search_history")
+    .select("id, user_id, email, skills, created_at");
+
+  if (searchError) console.error("Admin Debug - Search Error:", searchError);
+  console.log("Admin Debug - Total rows found in search_history:", allData?.length || 0);
+
+  const totalSearches = allData?.length || 0;
+
+  const recentSearches = allData ? [...allData].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  ).slice(0, 100) : [];
 
   // Simple Trend Analysis for AI Insights
   const allSkills = recentSearches?.flatMap((s) => s.skills) || [];
@@ -73,7 +80,7 @@ export default async function AdminDashboard() {
         />
         <StatCard
           title="Total Searches"
-          value={searchCount || 0}
+          value={totalSearches}
           trend="+48%"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,8 +137,8 @@ export default async function AdminDashboard() {
                   <tr key={i} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {search.skills.map((s: string) => (
-                          <span key={s} className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md text-[10px] font-bold border border-slate-700 group-hover:border-indigo-500/30 transition-colors">
+                        {search.skills.map((s: string, i: number) => (
+                          <span key={`${s}-${i}`} className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md text-[10px] font-bold border border-slate-700 group-hover:border-indigo-500/30 transition-colors">
                             {s}
                           </span>
                         ))}
